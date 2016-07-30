@@ -1,0 +1,8 @@
+{
+  "name": "bobriln",
+  "version": "0.1.0",
+  "description": "Bobril Native",
+  "main": "index.js",
+  "author": "Boris Letocha",
+  "license": "MIT"
+}
