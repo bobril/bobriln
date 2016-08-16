@@ -21,7 +21,10 @@ const nativeCallResultCallbacks: ((decoder: decoder.Decoder) => any)[] = [];
 const nativeCallResultResolvers: ((any) => void)[] = [];
 const nativeCallResultRejecters: ((any) => void)[] = [];
 export let platformName: string = null;
-export let readyPromise: Promise<any> = null;
+let readyResolver: ()=>void;
+export let readyPromise: Promise<any> = new Promise((resolve,reject)=>{
+    readyResolver = resolve;
+});
 
 function reset() {
     let params = prepareToCallNativeByIndex(-1);
@@ -33,6 +36,7 @@ function reset() {
         while (!decoder.isAnyEnd()) {
             nativeMethodName2Idx[decoder.readAny()] = idx++;
         }
+        readyResolver();
         __bobrilncb();
     });
 }

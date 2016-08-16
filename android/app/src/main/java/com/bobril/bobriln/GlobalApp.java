@@ -129,7 +129,8 @@ public class GlobalApp implements AccSensorListener.Listener, Gateway {
     }
 
     @JavascriptInterface
-    String c(final String param) {
+    String c(String aparam) {
+        final String param = aparam;
         final GlobalApp that = this;
         mainActivity.runOnUiThread(new Runnable() {
             @Override
