@@ -95,7 +95,7 @@ export class Decoder {
                     ofs += 2;
                 }
             }
-            res += String.fromCharCode.apply(null, sb.slice(0, batchLen));
+            res += String.fromCharCode.apply(null, sb.subarray(0, batchLen));
             strLen -= batchLen;
         }
         this.setPeek(PeekType.String, res, ofs);
