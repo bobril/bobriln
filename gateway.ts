@@ -6,10 +6,8 @@ declare var DEBUG: boolean;
 if (typeof DEBUG === "undefined") DEBUG = true;
 
 declare var __bobriln: {
-    // call native method number, rest are parameters
+    // call native method number, rest are parameters or when param=="" call JS event id, name, params, nodeid 
     c(param: string): string,
-    // call JS event id, name, params, nodeid
-    p(): string
 };
 
 const nativeMethodName2Idx: { [name: string]: number } = Object.create(null);
@@ -21,8 +19,8 @@ const nativeCallResultCallbacks: ((decoder: decoder.Decoder) => any)[] = [];
 const nativeCallResultResolvers: ((any) => void)[] = [];
 const nativeCallResultRejecters: ((any) => void)[] = [];
 export let platformName: string = null;
-let readyResolver: ()=>void;
-export let readyPromise: Promise<any> = new Promise((resolve,reject)=>{
+let readyResolver: () => void;
+export let readyPromise: Promise<any> = new Promise((resolve, reject) => {
     readyResolver = resolve;
 });
 
@@ -36,14 +34,15 @@ function reset() {
         while (!decoder.isAnyEnd()) {
             nativeMethodName2Idx[decoder.readAny()] = idx++;
         }
+        console.log("Starting " + fw + " " + platformName + " with " + idx + " methods");
         readyResolver();
         __bobrilncb();
     });
 }
 
-let eventHandler: (name:string, param: Object, nodeId: number) => boolean | PromiseLike<boolean> = null;
+let eventHandler: (name: string, param: Object, nodeId: number) => boolean | PromiseLike<boolean> = null;
 
-export function setEventHandler(handler: (name:string, param: Object, nodeId: number) => boolean | PromiseLike<boolean>) {
+export function setEventHandler(handler: (name: string, param: Object, nodeId: number) => boolean | PromiseLike<boolean>) {
     eventHandler = handler;
 }
 
@@ -65,7 +64,7 @@ function __bobrilncb() {
         return;
     while (true) {
         if (eventDecoder.isEOF()) {
-            eventDecoder.initFromLatin1String(__bobriln.p());
+            eventDecoder.initFromLatin1String(__bobriln.c(""));
             if (eventDecoder.isEOF())
                 return;
         }
@@ -75,19 +74,19 @@ function __bobrilncb() {
         let nodeId = eventDecoder.readAny();
         while (!eventDecoder.isAnyEnd()) eventDecoder.next();
         eventDecoder.next();
-        let res = eventHandler(name,param,nodeId);
-        if (res===true || res === false) {
-            if (id>=0) writeEventResult(id,<boolean>res);
+        let res = eventHandler(name, param, nodeId);
+        if (res === true || res === false) {
+            if (id >= 0) writeEventResult(id, <boolean>res);
         } else {
             inAsyncEvent = true;
-            (<PromiseLike<boolean>>res).then((val)=>{
+            (<PromiseLike<boolean>>res).then((val) => {
                 inAsyncEvent = false;
-                if (id>=0) writeEventResult(id,val);
+                if (id >= 0) writeEventResult(id, val);
                 __bobrilncb();
-            }, (err)=>{
+            }, (err) => {
                 console.error(err);
                 inAsyncEvent = false;
-                if (id>=0) writeEventResult(id,false);
+                if (id >= 0) writeEventResult(id, false);
                 __bobrilncb();
             });
             return;

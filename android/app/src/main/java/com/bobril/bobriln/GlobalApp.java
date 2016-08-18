@@ -10,6 +10,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.ConsoleMessage;
 import android.webkit.JavascriptInterface;
+import android.webkit.JsPromptResult;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
@@ -45,13 +46,26 @@ public class GlobalApp implements AccSensorListener.Listener, Gateway {
     Map<String, IVNodeFactory> tag2factory = new HashMap<>();
     private MainActivity mainActivity;
 
+    public class Jsiface {
+        GlobalApp globalApp;
+
+        public Jsiface(GlobalApp owner) {
+            globalApp = owner;
+        }
+
+        @JavascriptInterface
+        public String c(String param) {
+            return globalApp.c(param);
+        }
+    }
+
     public GlobalApp(Context applicationContext) {
         this.applicationContext = applicationContext;
         shakeDetector = new AccSensorListener(this);
         shakeDetector.start((SensorManager) applicationContext.getSystemService(Context.SENSOR_SERVICE));
         webView = new WebView(applicationContext);
         webView.getSettings().setJavaScriptEnabled(true);
-        webView.addJavascriptInterface(this, "__bobriln");
+        webView.addJavascriptInterface(new Jsiface(this), "__bobriln");
         webView.setWebViewClient(new WebViewClient() {
             @Override
             public void onPageFinished(WebView view, String url) {
@@ -119,18 +133,14 @@ public class GlobalApp implements AccSensorListener.Listener, Gateway {
         webView.loadUrl("http://localhost:8080/index.html");
     }
 
-    @JavascriptInterface
-    String p() {
-        synchronized (eventEncoder) {
-            String res = eventEncoder.toLatin1String();
-            eventEncoder.reset();
-            return res;
+    String c(final String param) {
+        if (param.length()==0) {
+            synchronized (eventEncoder) {
+                String res = eventEncoder.toLatin1String();
+                eventEncoder.reset();
+                return res;
+            }
         }
-    }
-
-    @JavascriptInterface
-    String c(String aparam) {
-        final String param = aparam;
         final GlobalApp that = this;
         mainActivity.runOnUiThread(new Runnable() {
             @Override
