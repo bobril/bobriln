@@ -61,8 +61,10 @@ public class GlobalApp implements AccSensorListener.Listener, Gateway {
 
     public GlobalApp(Context applicationContext) {
         this.applicationContext = applicationContext;
-        shakeDetector = new AccSensorListener(this);
-        shakeDetector.start((SensorManager) applicationContext.getSystemService(Context.SENSOR_SERVICE));
+        if (BobrilnConfig.ShakeToMenu) {
+            shakeDetector = new AccSensorListener(this);
+            shakeDetector.start((SensorManager) applicationContext.getSystemService(Context.SENSOR_SERVICE));
+        }
         webView = new WebView(applicationContext);
         webView.getSettings().setJavaScriptEnabled(true);
         webView.addJavascriptInterface(new Jsiface(this), "__bobriln");
@@ -129,8 +131,12 @@ public class GlobalApp implements AccSensorListener.Listener, Gateway {
     }
 
     void reloadJS() {
-        webView.getSettings().setCacheMode(WebSettings.LOAD_NO_CACHE);
-        webView.loadUrl("http://localhost:8080/index.html");
+        if (BobrilnConfig.LoadFromLocalhostUrl) {
+            webView.getSettings().setCacheMode(WebSettings.LOAD_NO_CACHE);
+            webView.loadUrl("http://localhost:8080/index.html");
+        } else {
+            webView.loadUrl("file:///android_asset/index.html");
+        }
     }
 
     String c(final String param) {

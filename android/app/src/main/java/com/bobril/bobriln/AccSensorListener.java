@@ -52,7 +52,7 @@ public class AccSensorListener implements SensorEventListener {
         final float ay = event.values[1];
         final float az = event.values[2];
         final double magnitudeSquared = ax * ax + ay * ay + az * az;
-        final boolean accelerating = magnitudeSquared > 13 * 13;
+        final boolean accelerating = magnitudeSquared > 11 * 11;
         long timestamp = event.timestamp;
         final long tooOld = timestamp - 500000000; // more than 0.5s is too old
         int pos = 0;
