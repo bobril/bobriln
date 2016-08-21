@@ -1,6 +1,28 @@
 Bobril Native
 ===
 
+What is this?
+--
+
+This is reimagination of React Native in context of Bobril.
+It does not use anything from React Native except [CSSLayout](https://github.com/facebook/css-layout).
+It uses identical naming of basic elements `Text` and `View`.
+
+Differences to Bobril
+--
+
+`b.addRoot` method can create only fullscreen nodes.
+Usage of `b.style` is mandatory for any styling.
+There are no classnames, but b.styleDef works (without pseudo classes).
+Lifecycle methods `postInitDom`, `postUpdateDom`, `postUpdateDomEverytime` are not called at all.
+Lifecycle method `destroy` has just 2 parameters (ctx and me). There is no `b.getDomNode`, it would have no use.
+
+Compatibility
+--
+
+Built application is compatible with Android 4.4 (API 19) or better.
+Reason is that 4.4 is first version of Android with Chrome (modern fast browser) inside Webview.
+
 How to start
 --
 
@@ -20,12 +42,18 @@ How to start
 
     for example: ANDROID_HOME=c:\Program Files (x86)\Android\android-sdk\
 
-3. in empty directory
+Inside Manager install: Android SDK Build-tools 24.0.1 and Android 7.0 (API 24) SDK Platform 
 
-    bb bobriln -i "Your app name"
+5. in empty directory
 
-4. start bobril-build in interactive mode
+    bb bobriln -init
+
+Shortcut for lazy writters:
+
+    bb n -i
+
+6. start bobril-build in interactive mode
 
     bb
 
-5. point your browser to http://localhost:8080/bb
+7. point your browser to [http://localhost:8080/bb](http://localhost:8080/bb)

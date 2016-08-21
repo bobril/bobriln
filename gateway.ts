@@ -7,7 +7,7 @@ if (typeof DEBUG === "undefined") DEBUG = true;
 
 declare var __bobriln: {
     // call native method number, rest are parameters or when param=="" call JS event id, name, params, nodeid 
-    c(param: string): string,
+    c(param: string): string;
 };
 
 const nativeMethodName2Idx: { [name: string]: number } = Object.create(null);
