@@ -18,7 +18,10 @@ const nativeMethodResultDecoder = new decoder.Decoder();
 const nativeCallResultCallbacks: ((decoder: decoder.Decoder) => any)[] = [];
 const nativeCallResultResolvers: ((any) => void)[] = [];
 const nativeCallResultRejecters: ((any) => void)[] = [];
-export let platformName: string = null;
+let localPlatformName: string = null;
+export function platformName() {
+    return localPlatformName;
+}
 let readyResolver: () => void;
 export let readyPromise: Promise<any> = new Promise((resolve, reject) => {
     readyResolver = resolve;
@@ -29,12 +32,12 @@ function reset() {
     callNativeAsync((decoder: decoder.Decoder) => {
         let fw = decoder.readAny();
         if (fw != "Bobril Native") throw new Error("Wrong framework " + fw);
-        platformName = decoder.readAny();
+        localPlatformName = decoder.readAny();
         let idx = 0;
         while (!decoder.isAnyEnd()) {
             nativeMethodName2Idx[decoder.readAny()] = idx++;
         }
-        console.log("Starting " + fw + " " + platformName + " with " + idx + " methods");
+        console.log("Starting " + fw + " " + localPlatformName + " with " + idx + " methods");
         readyResolver();
         __bobrilncb();
     });

@@ -580,7 +580,7 @@ export function vdomPath(n: number): IBobrilCacheNode[] {
     return res;
 }
 
-// PureFuncs: deref, getDomNode
+// PureFuncs: deref
 export function deref(n: number): IBobrilCacheNode {
     return nodeId2Node[n];
 }
