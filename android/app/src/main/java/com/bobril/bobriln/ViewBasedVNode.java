@@ -12,6 +12,9 @@ import com.facebook.csslayout.CSSDirection;
 import com.facebook.csslayout.CSSFlexDirection;
 import com.facebook.csslayout.CSSJustify;
 import com.facebook.csslayout.CSSLayoutContext;
+import com.facebook.csslayout.CSSPositionType;
+import com.facebook.csslayout.CSSWrap;
+import com.facebook.csslayout.Spacing;
 
 public abstract class ViewBasedVNode extends VNode {
     View view;
@@ -80,11 +83,26 @@ public abstract class ViewBasedVNode extends VNode {
     public void setStyle(String styleName, Object styleValue) {
         super.setStyle(styleName, styleValue);
         switch (styleName) {
+            case "position":
+                css.setPositionType(toCSSPositionType(styleValue));
+                break;
             case "width":
                 css.setStyleWidth(toCSSDimension(styleValue));
                 break;
             case "height":
                 css.setStyleHeight(toCSSDimension(styleValue));
+                break;
+            case "top":
+                css.setPositionTop(toCSSDimension(styleValue));
+                break;
+            case "left":
+                css.setPositionLeft(toCSSDimension(styleValue));
+                break;
+            case "right":
+                css.setPositionRight(toCSSDimension(styleValue));
+                break;
+            case "bottom":
+                css.setPositionBottom(toCSSDimension(styleValue));
                 break;
             case "minWidth":
                 css.setStyleMinWidth(toCSSDimension(styleValue));
@@ -113,35 +131,136 @@ public abstract class ViewBasedVNode extends VNode {
             case "justifyContent":
                 css.setJustifyContent(toCSSJustify(styleValue));
                 break;
+            case "flexWrap":
+                css.setWrap(toCSSWrap(styleValue));
+                break;
+            case "padding":
+                css.setPadding(Spacing.ALL, toCSSDimension(styleValue));
+                break;
+            case "paddingLeft":
+                css.setPadding(Spacing.LEFT, toCSSDimension(styleValue));
+                break;
+            case "paddingTop":
+                css.setPadding(Spacing.TOP, toCSSDimension(styleValue));
+                break;
+            case "paddingRight":
+                css.setPadding(Spacing.RIGHT, toCSSDimension(styleValue));
+                break;
+            case "paddingBottom":
+                css.setPadding(Spacing.BOTTOM, toCSSDimension(styleValue));
+                break;
+            case "paddingHorizontal":
+                css.setPadding(Spacing.HORIZONTAL, toCSSDimension(styleValue));
+                break;
+            case "paddingVertical":
+                css.setPadding(Spacing.VERTICAL, toCSSDimension(styleValue));
+                break;
+            case "paddingStart":
+                css.setPadding(Spacing.START, toCSSDimension(styleValue));
+                break;
+            case "paddingEnd":
+                css.setPadding(Spacing.END, toCSSDimension(styleValue));
+                break;
+            case "margin":
+                css.setMargin(Spacing.ALL, toCSSDimension(styleValue));
+                break;
+            case "marginLeft":
+                css.setMargin(Spacing.LEFT, toCSSDimension(styleValue));
+                break;
+            case "marginTop":
+                css.setMargin(Spacing.TOP, toCSSDimension(styleValue));
+                break;
+            case "marginRight":
+                css.setMargin(Spacing.RIGHT, toCSSDimension(styleValue));
+                break;
+            case "marginBottom":
+                css.setMargin(Spacing.BOTTOM, toCSSDimension(styleValue));
+                break;
+            case "marginHorizontal":
+                css.setMargin(Spacing.HORIZONTAL, toCSSDimension(styleValue));
+                break;
+            case "marginVertical":
+                css.setMargin(Spacing.VERTICAL, toCSSDimension(styleValue));
+                break;
+            case "marginStart":
+                css.setMargin(Spacing.START, toCSSDimension(styleValue));
+                break;
+            case "marginEnd":
+                css.setMargin(Spacing.END, toCSSDimension(styleValue));
+                break;
+            case "borderWidth":
+                css.setBorder(Spacing.ALL, toCSSDimension(styleValue));
+                break;
+            case "borderLeftWidth":
+                css.setBorder(Spacing.LEFT, toCSSDimension(styleValue));
+                break;
+            case "borderTopWidth":
+                css.setBorder(Spacing.TOP, toCSSDimension(styleValue));
+                break;
+            case "borderRightWidth":
+                css.setBorder(Spacing.RIGHT, toCSSDimension(styleValue));
+                break;
+            case "borderBottomWidth":
+                css.setBorder(Spacing.BOTTOM, toCSSDimension(styleValue));
+                break;
+            case "borderHorizontalWidth":
+                css.setBorder(Spacing.HORIZONTAL, toCSSDimension(styleValue));
+                break;
+            case "borderVerticalWidth":
+                css.setBorder(Spacing.VERTICAL, toCSSDimension(styleValue));
+                break;
+            case "borderStartWidth":
+                css.setBorder(Spacing.START, toCSSDimension(styleValue));
+                break;
+            case "borderEndWidth":
+                css.setBorder(Spacing.END, toCSSDimension(styleValue));
+                break;
         }
+    }
+
+    private CSSPositionType toCSSPositionType(Object value) {
+        if (value==null) return CSSPositionType.RELATIVE;
+        if (value.equals("absolute")) return CSSPositionType.ABSOLUTE;
+        if (value.equals("relative")) return CSSPositionType.RELATIVE;
+        return CSSPositionType.RELATIVE;
+    }
+
+    private CSSWrap toCSSWrap(Object value) {
+        if (value==null) return CSSWrap.NOWRAP;
+        if (value instanceof Boolean) {
+            return ((Boolean)value).booleanValue()?CSSWrap.WRAP:CSSWrap.NOWRAP;
+        }
+        if (value.equals("wrap")) return CSSWrap.WRAP;
+        if (value.equals("nowrap")) return CSSWrap.NOWRAP;
+        return CSSWrap.NOWRAP;
     }
 
     private CSSJustify toCSSJustify(Object value) {
         if (value==null) return CSSJustify.FLEX_START;
-        if (value=="flex-start") return CSSJustify.FLEX_START;
-        if (value=="flex-end") return CSSJustify.FLEX_END;
-        if (value=="center") return CSSJustify.CENTER;
-        if (value=="space-around") return CSSJustify.SPACE_AROUND;
-        if (value=="space-between") return CSSJustify.SPACE_BETWEEN;
+        if (value.equals("flex-start")) return CSSJustify.FLEX_START;
+        if (value.equals("flex-end")) return CSSJustify.FLEX_END;
+        if (value.equals("center")) return CSSJustify.CENTER;
+        if (value.equals("space-around")) return CSSJustify.SPACE_AROUND;
+        if (value.equals("space-between")) return CSSJustify.SPACE_BETWEEN;
         return CSSJustify.FLEX_START;
     }
 
     private CSSAlign toCSSAlign(Object value, CSSAlign dflt) {
         if (value==null) return dflt;
-        if (value=="flex-start") return CSSAlign.FLEX_START;
-        if (value=="flex-end") return CSSAlign.FLEX_END;
-        if (value=="auto") return CSSAlign.AUTO;
-        if (value=="stretch") return CSSAlign.STRETCH;
-        if (value=="center") return CSSAlign.CENTER;
+        if (value.equals("flex-start")) return CSSAlign.FLEX_START;
+        if (value.equals("flex-end")) return CSSAlign.FLEX_END;
+        if (value.equals("auto")) return CSSAlign.AUTO;
+        if (value.equals("stretch")) return CSSAlign.STRETCH;
+        if (value.equals("center")) return CSSAlign.CENTER;
         return dflt;
     }
 
     private CSSFlexDirection toFlexDirection(Object value) {
         if (value==null) return CSSFlexDirection.COLUMN;
-        if (value=="column") return CSSFlexDirection.COLUMN;
-        if (value=="row") return CSSFlexDirection.ROW;
-        if (value=="column-reverse") return CSSFlexDirection.COLUMN_REVERSE;
-        if (value=="row-reverse") return CSSFlexDirection.ROW_REVERSE;
+        if (value.equals("column")) return CSSFlexDirection.COLUMN;
+        if (value.equals("row")) return CSSFlexDirection.ROW;
+        if (value.equals("column-reverse")) return CSSFlexDirection.COLUMN_REVERSE;
+        if (value.equals("row-reverse")) return CSSFlexDirection.ROW_REVERSE;
         return CSSFlexDirection.COLUMN;
     }
 
