@@ -76,6 +76,7 @@ public abstract class ViewBasedVNode extends VNode {
         if (css.getLayoutDirection()== CSSDirection.LTR) dir = View.TEXT_DIRECTION_LTR;
         else if (css.getLayoutDirection()== CSSDirection.RTL) dir = View.TEXT_DIRECTION_RTL;
         view.setTextDirection(dir);
+        view.requestLayout();
         css.markLayoutSeen();
     }
 
