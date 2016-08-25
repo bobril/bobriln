@@ -11,6 +11,10 @@ public class RootView extends ViewGroup {
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        int count = getChildCount();
+        for (int i = 0; i < count; i++) {
+            getChildAt(i).measure(widthMeasureSpec, heightMeasureSpec);
+        }
         //int widthMode = MeasureSpec.getMode(widthMeasureSpec);
         int width = MeasureSpec.getSize(widthMeasureSpec);
         //int heightMode = MeasureSpec.getMode(heightMeasureSpec);

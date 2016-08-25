@@ -76,10 +76,10 @@ public abstract class VNode {
     }
 
     public void setStyle(String styleName, Object styleValue) {
-        if (styleValue==null) {
-            if (lstyle==null) return;
+        if (styleValue == null) {
+            if (lstyle == null) return;
             lstyle.remove(styleName);
-            if (lstyle.size()==0) lstyle=null;
+            if (lstyle.size() == 0) lstyle = null;
         } else {
             if (lstyle == null) lstyle = new HashMap<>();
             lstyle.put(styleName, styleValue);
@@ -87,7 +87,7 @@ public abstract class VNode {
     }
 
     public void unsetView() {
-        if (children==null) return;
+        if (children == null) return;
         for (int i = 0; i < children.size(); i++) {
             children.get(i).unsetView();
         }
@@ -96,7 +96,7 @@ public abstract class VNode {
     public void invalidate() {
         if (needValidate) return;
         needValidate = true;
-        if (lparent!=null) lparent.invalidate();
+        if (lparent != null) lparent.invalidate();
     }
 
     public boolean needValidate() {
@@ -113,25 +113,60 @@ public abstract class VNode {
     public void flushLayout() {
     }
 
+    public void updateStyleDef(String name) {
+        if (children != null) {
+            for (int i = 0; i < children.size(); i++) {
+                children.get(i).updateStyleDef(name);
+            }
+        }
+        if (stylelist == null) return;
+        for (int i = 0; i < stylelist.size(); i += 2) {
+            String n = (String) stylelist.get(i);
+            if (stylelist.get(i + 1) == null && name.equals(n)) {
+                setStyleList(stylelist);
+                return;
+            }
+        }
+    }
+
     public void setStyleList(List<Object> nlist) {
         stylelist = nlist;
-        if (lstyle==null) {
-            for (int i=0;i<nlist.size();i+=2) {
-                String name = (String)nlist.get(i);
-                Object value = nlist.get(i+1);
-                // TODO solve value==null case
-                setStyle(name,value);
+        if (lstyle == null) {
+            for (int i = 0; i < nlist.size(); i += 2) {
+                String name = (String) nlist.get(i);
+                Object value = nlist.get(i + 1);
+                if (value == null) { // Expand StyleDef
+                    List<Object> nestedList = this.vdom.styleDefs.get(name);
+                    for (int j = 0; j < nestedList.size(); j += 2) {
+                        name = (String) nestedList.get(j);
+                        value = nestedList.get(j + 1);
+                        setStyle(name, value);
+                    }
+                } else {
+                    setStyle(name, value);
+                }
             }
         } else {
             // TODO optimize
-            Iterator<String> iterator = lstyle.keySet().iterator();
+            Map<String, Object> prevlstyle = lstyle;
+            lstyle = null;
+            Iterator<String> iterator = prevlstyle.keySet().iterator();
             while (iterator.hasNext()) {
-                setStyle(iterator.next(),null);
+                setStyle(iterator.next(), null);
             }
-            for (int i=0;i<nlist.size();i+=2) {
-                String name = (String)nlist.get(i);
-                Object value = nlist.get(i+1);
-                setStyle(name,value);
+            for (int i = 0; i < nlist.size(); i += 2) {
+                String name = (String) nlist.get(i);
+                Object value = nlist.get(i + 1);
+                if (value == null) { // Expand StyleDef
+                    List<Object> nestedList = this.vdom.styleDefs.get(name);
+                    for (int j = 0; j < nestedList.size(); j += 2) {
+                        name = (String) nestedList.get(j);
+                        value = nestedList.get(j + 1);
+                        setStyle(name, value);
+                    }
+                } else {
+                    setStyle(name, value);
+                }
             }
         }
     }

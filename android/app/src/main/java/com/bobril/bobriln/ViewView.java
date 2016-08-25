@@ -27,6 +27,15 @@ public class ViewView extends ViewGroup {
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        int count = getChildCount();
+        for (int i = 0; i < count; i++) {
+            View child = getChildAt(i);
+            LayoutParams lpo = child.getLayoutParams();
+            if (lpo instanceof AbsoluteLayout.LayoutParams){
+                AbsoluteLayout.LayoutParams lp = (AbsoluteLayout.LayoutParams)lpo;
+                child.measure(MeasureSpec.makeMeasureSpec(lp.width,MeasureSpec.EXACTLY),MeasureSpec.makeMeasureSpec(lp.height,MeasureSpec.EXACTLY));
+            }
+        }
         LayoutParams lp= this.getLayoutParams();
         this.setMeasuredDimension(lp.width,lp.height);
     }

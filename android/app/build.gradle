@@ -5,7 +5,7 @@ android {
     buildToolsVersion "24.0.1"
 
     defaultConfig {
-        applicationId "com.bobril.native"
+        applicationId "com.bobril.bobriln"
         minSdkVersion 19
         targetSdkVersion 24
         versionCode 1
