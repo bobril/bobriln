@@ -25,6 +25,23 @@ public abstract class ViewBasedVNode extends VNode {
 
     abstract View createView(Context ctx);
 
+    public int pos2NodeId(float x, float y) {
+        float lx = css.getLayoutX();
+        float ly = css.getLayoutY();
+        float w = css.getLayoutWidth();
+        float h = css.getLayoutHeight();
+        if (x<lx || y<ly || x>lx+w || y>ly+h) return 0;
+        if (children!=null) {
+            int c = children.size();
+            for(int i=0;i<c;i++) {
+                VNode ch = children.get(i);
+                int id = ch.pos2NodeId(x-lx,y-ly);
+                if (id>0) return id;
+            }
+        }
+        return nodeId;
+    }
+
     @Override
     int validateView(int indexInParent) {
         needValidate = false;

@@ -43,9 +43,9 @@ function reset() {
     });
 }
 
-let eventHandler: (name: string, param: Object, nodeId: number) => boolean | PromiseLike<boolean> = null;
+let eventHandler: (name: string, param: Object, nodeId: number, time: number) => boolean | PromiseLike<boolean> = null;
 
-export function setEventHandler(handler: (name: string, param: Object, nodeId: number) => boolean | PromiseLike<boolean>) {
+export function setEventHandler(handler: (name: string, param: Object, nodeId: number, time: number) => boolean | PromiseLike<boolean>) {
     eventHandler = handler;
 }
 
@@ -75,9 +75,14 @@ function __bobrilncb() {
         let name = eventDecoder.readAny();
         let param = eventDecoder.readAny();
         let nodeId = eventDecoder.readAny();
+        let time = -1;
+        if (!eventDecoder.isAnyEnd()) {
+            time = eventDecoder.readAny();
+        }
         while (!eventDecoder.isAnyEnd()) eventDecoder.next();
         eventDecoder.next();
-        let res = eventHandler(name, param, nodeId);
+        console.log("Event " + name + " " + JSON.stringify(param) + " node:" + nodeId + " time:" + time);
+        let res = eventHandler(name, param, nodeId, time);
         if (res === true || res === false) {
             if (id >= 0) writeEventResult(id, <boolean>res);
         } else {

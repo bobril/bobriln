@@ -1042,18 +1042,25 @@ if (nativeRaf) {
     nativeRaf((param) => { if (param === +param) hasNativeRaf = true; });
 }
 
-export const now = Date.now || (() => (new Date).getTime());
-var startTime = now();
+const truenow = Date.now || (() => (new Date).getTime());
+var startTime = truenow();
 var lastTickTime = 0;
+
+var mockedTime: number = -1;
+
+export function now() {
+    if (mockedTime === -1) return truenow();
+    return mockedTime;
+}
 
 function requestAnimationFrame(callback: (time: number) => void) {
     if (hasNativeRaf) {
         nativeRaf(callback);
     } else {
-        var delay = 50 / 3 + lastTickTime - now();
+        var delay = 50 / 3 + lastTickTime - truenow();
         if (delay < 0) delay = 0;
         window.setTimeout(() => {
-            lastTickTime = now();
+            lastTickTime = truenow();
             callback(lastTickTime - startTime);
         }, delay);
     }
@@ -1078,9 +1085,13 @@ export function addEvent(name: string, priority: number, callback: (ev: any, nod
     registryEvents[name] = list;
 }
 
-gw.setEventHandler((name:string, param: Object, nodeId: number) => {
+gw.setEventHandler((name: string, param: Object, nodeId: number, time: number) => {
     let node = nodeId2Node[nodeId];
-    return emitEvent(name, param, node);
+    let backupMockedTime = mockedTime;
+    if (time != -1) mockedTime = time;
+    let res = emitEvent(name, param, node);
+    mockedTime = backupMockedTime;
+    return res;
 });
 
 export function emitEvent(name: string, ev: any, node: IBobrilCacheNode): boolean {
@@ -1159,7 +1170,7 @@ function isLogicalParent(parent: IBobrilCacheNode, child: IBobrilCacheNode, root
 }
 
 export function syncUpdate() {
-    internalUpdate(now() - startTime);
+    internalUpdate(truenow() - startTime);
 }
 
 function update(time: number) {
@@ -1168,7 +1179,7 @@ function update(time: number) {
 }
 
 function internalUpdate(time: number) {
-    renderFrameBegin = now();
+    renderFrameBegin = truenow();
     initEvents();
     frameCounter++;
     ignoringShouldChange = nextIgnoreShouldChange;
@@ -1201,7 +1212,7 @@ function internalUpdate(time: number) {
     }
     let r0 = roots["0"];
     afterFrameCallback(r0 ? r0.c : null);
-    lastFrameDurationMs = now() - renderFrameBegin;
+    lastFrameDurationMs = truenow() - renderFrameBegin;
 }
 
 var nextIgnoreShouldChange = false;
@@ -1572,6 +1583,70 @@ export interface IBobrilMouseWheelEvent extends IBobrilMouseEvent {
     dx: number;
     dy: number;
 }
+
+addEvent("pointerDown", 10, (ev, node) => {
+    let event: IBobrilPointerEvent = {
+        x: ev.x,
+        y: ev.y,
+        button: 1,
+        count: 1,
+        shift: false,
+        ctrl: false,
+        alt: false,
+        meta: false,
+        id: ev.id,
+        type: BobrilPointerType.Touch
+    }
+    return bubble(node, "onPointerDown", event) != null;
+});
+
+addEvent("pointerMove", 10, (ev, node) => {
+    let event: IBobrilPointerEvent = {
+        x: ev.x,
+        y: ev.y,
+        button: 1,
+        count: 1,
+        shift: false,
+        ctrl: false,
+        alt: false,
+        meta: false,
+        id: ev.id,
+        type: BobrilPointerType.Touch
+    }
+    return bubble(node, "onPointerMove", event) != null;
+});
+
+addEvent("pointerUp", 10, (ev, node) => {
+    let event: IBobrilPointerEvent = {
+        x: ev.x,
+        y: ev.y,
+        button: 1,
+        count: 1,
+        shift: false,
+        ctrl: false,
+        alt: false,
+        meta: false,
+        id: ev.id,
+        type: BobrilPointerType.Touch
+    }
+    return bubble(node, "onPointerUp", event) != null;
+});
+
+addEvent("pointerCancel", 10, (ev, node) => {
+    let event: IBobrilPointerEvent = {
+        x: 0,
+        y: 0,
+        button: 1,
+        count: 1,
+        shift: false,
+        ctrl: false,
+        alt: false,
+        meta: false,
+        id: ev.id,
+        type: BobrilPointerType.Touch
+    }
+    return bubble(node, "pointerCancel", event) != null;
+});
 
 // Bobril.Focus
 
@@ -2093,7 +2168,7 @@ export function withKey(node: IBobrilNode, key: string): IBobrilNode {
 // PureFuncs: styledDiv, createVirtualComponent, createComponent, createDerivedComponent, createOverridingComponent, prop, propi, propa, getValue
 
 export function styledDiv(children: IBobrilChildren, ...styles: any[]): IBobrilNode {
-    return style({ tag: 'div', children }, styles);
+    return style({ tag: 'View', children }, styles);
 }
 
 export function createVirtualComponent<TData>(component: IBobrilComponent): (data?: TData, children?: IBobrilChildren) => IBobrilNode {
@@ -2118,7 +2193,7 @@ export function createComponent<TData extends Object>(component: IBobrilComponen
     const originalRender = component.render;
     if (originalRender) {
         component.render = function (ctx: any, me: IBobrilNode, oldMe?: IBobrilCacheNode) {
-            me.tag = 'div';
+            me.tag = 'View';
             return originalRender.call(component, ctx, me, oldMe);
         }
     } else {

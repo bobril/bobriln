@@ -14,11 +14,11 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        RootView rootView = new RootView(this);
-        setContentView(rootView);
         if (globalApp == null) {
             globalApp = new GlobalApp(getApplicationContext());
         }
+        RootView rootView = new RootView(this,globalApp);
+        setContentView(rootView);
         globalApp.OnCreate(rootView,this);
         updateMediumSize();
     }

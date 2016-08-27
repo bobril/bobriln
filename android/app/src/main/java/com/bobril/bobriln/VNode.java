@@ -173,4 +173,8 @@ public abstract class VNode {
 
     public void setScreenSize(int width, int height) {
     }
+
+    public int pos2NodeId(float x, float y) {
+        return 0;
+    }
 }

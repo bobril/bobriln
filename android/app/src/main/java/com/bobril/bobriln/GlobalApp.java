@@ -3,6 +3,7 @@ package com.bobril.bobriln;
 import android.content.Context;
 import android.graphics.Color;
 import android.hardware.SensorManager;
+import android.os.SystemClock;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.MenuItem;
@@ -20,6 +21,7 @@ import android.widget.PopupMenu;
 import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -300,7 +302,7 @@ public class GlobalApp implements AccSensorListener.Listener, Gateway {
     }
 
     @Override
-    public void emitJSEvent(String name, Map<String, Object> param, int nodeId, EventResultCallback callback) {
+    public void emitJSEvent(String name, Map<String, Object> param, int nodeId, long time, EventResultCallback callback) {
         synchronized (eventEncoder) {
             int id = 0;
             if (freeEventIds.isEmpty()) {
@@ -313,6 +315,9 @@ public class GlobalApp implements AccSensorListener.Listener, Gateway {
             eventEncoder.writeString(name);
             eventEncoder.writeObject(param);
             eventEncoder.writeNumber(nodeId);
+            if (time!=-1) {
+                eventEncoder.writeNumber(System.currentTimeMillis()+time-SystemClock.uptimeMillis());
+            }
             eventEncoder.writeEndOfBlock();
         }
         if (jsReady) triggerJS();

@@ -17,5 +17,5 @@ public interface Gateway {
     void RegisterTag(String tag, IVNodeFactory factory);
 
     void emitJSEvent(String name, Map<String, Object> param, int nodeId);
-    void emitJSEvent(String name, Map<String, Object> param, int nodeId, EventResultCallback callback);
+    void emitJSEvent(String name, Map<String, Object> param, int nodeId, long time, EventResultCallback callback);
 }
