@@ -9,28 +9,13 @@ import java.util.Objects;
 public class ViewVNode extends ViewGroupBasedVNode {
     @Override
     View createView(Context ctx) {
-        View view = new ViewView(ctx);
-        updateBackground(view, getStyle().get("background"));
+        View view = new ViewView(ctx, this);
         return view;
-    }
-
-    private void updateBackground(View view, Object background) {
-        view.setBackgroundColor(ColorUtils.toColor(background));
     }
 
     @Override
     VNode createByTag(String tag) {
         return lparent.createByTag(tag);
-    }
-
-    @Override
-    public void setStyle(String styleName, Object styleValue) {
-        if (view!=null) {
-            if (Objects.equals(styleName, "background")) {
-                updateBackground(view, styleValue);
-            }
-        }
-        super.setStyle(styleName, styleValue);
     }
 
     @Override

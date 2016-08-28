@@ -19,6 +19,7 @@ import com.facebook.csslayout.Spacing;
 public abstract class ViewBasedVNode extends VNode {
     View view;
     PublicCSSNode css;
+    ViewDecoration decoration;
     ViewBasedVNode() {
         css = new PublicCSSNode();
     }
@@ -74,6 +75,12 @@ public abstract class ViewBasedVNode extends VNode {
         return indexInParent+1;
     }
 
+    public void invalidateView() {
+        if (view!=null) {
+            view.invalidate();
+        }
+    }
+
     @Override
     public void unsetView() {
         view = null;
@@ -101,6 +108,39 @@ public abstract class ViewBasedVNode extends VNode {
     public void setStyle(String styleName, Object styleValue) {
         super.setStyle(styleName, styleValue);
         switch (styleName) {
+            case "background":
+                lazyDecoration().setBackground(styleValue);
+                break;
+            case "backgroundColor":
+                lazyDecoration().setBackgroundColor(styleValue);
+                break;
+            case "borderColor":
+                lazyDecoration().setBorderColor(Spacing.ALL, styleValue);
+                break;
+            case "borderTopColor":
+                lazyDecoration().setBorderColor(Spacing.TOP, styleValue);
+                break;
+            case "borderBottomColor":
+                lazyDecoration().setBorderColor(Spacing.BOTTOM, styleValue);
+                break;
+            case "borderLeftColor":
+                lazyDecoration().setBorderColor(Spacing.LEFT, styleValue);
+                break;
+            case "borderRightColor":
+                lazyDecoration().setBorderColor(Spacing.RIGHT, styleValue);
+                break;
+            case "borderHorizontalColor":
+                lazyDecoration().setBorderColor(Spacing.HORIZONTAL, styleValue);
+                break;
+            case "borderVerticalColor":
+                lazyDecoration().setBorderColor(Spacing.VERTICAL, styleValue);
+                break;
+            case "borderStartColor":
+                lazyDecoration().setBorderColor(Spacing.START, styleValue);
+                break;
+            case "borderEndColor":
+                lazyDecoration().setBorderColor(Spacing.END, styleValue);
+                break;
             case "position":
                 css.setPositionType(toCSSPositionType(styleValue));
                 break;
@@ -312,5 +352,16 @@ public abstract class ViewBasedVNode extends VNode {
     public void setScreenSize(int width, int height) {
         css.setStyleWidth(width);
         css.setStyleHeight(height);
+    }
+
+    public ViewDecoration getDecoration() {
+        return decoration;
+    }
+
+    public ViewDecoration lazyDecoration() {
+        if (decoration==null) {
+            decoration = new ViewDecoration(this);
+        }
+        return decoration;
     }
 }

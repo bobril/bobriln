@@ -1,15 +1,26 @@
 package com.bobril.bobriln;
 
 import android.content.Context;
+import android.graphics.Canvas;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewDebug;
 import android.view.ViewGroup;
 import android.widget.AbsoluteLayout;
 
 public class ViewView extends ViewGroup {
+    ViewBasedVNode owner;
 
-    public ViewView(Context context) {
+    public ViewView(Context context, ViewBasedVNode owner) {
         super(context);
+        this.owner = owner;
+    }
+
+    @Override
+    protected void dispatchDraw(Canvas canvas) {
+        ViewDecoration decoration = owner.getDecoration();
+        if (decoration != null) decoration.onDraw(canvas);
+        super.dispatchDraw(canvas);
     }
 
     @Override
@@ -18,9 +29,9 @@ public class ViewView extends ViewGroup {
         for (int i = 0; i < count; i++) {
             View child = getChildAt(i);
             LayoutParams lpo = child.getLayoutParams();
-            if (lpo instanceof AbsoluteLayout.LayoutParams){
-                AbsoluteLayout.LayoutParams lp = (AbsoluteLayout.LayoutParams)lpo;
-                child.layout(lp.x,lp.y,lp.x+lp.width,lp.y+lp.height);
+            if (lpo instanceof AbsoluteLayout.LayoutParams) {
+                AbsoluteLayout.LayoutParams lp = (AbsoluteLayout.LayoutParams) lpo;
+                child.layout(lp.x, lp.y, lp.x + lp.width, lp.y + lp.height);
             }
         }
     }
@@ -31,12 +42,12 @@ public class ViewView extends ViewGroup {
         for (int i = 0; i < count; i++) {
             View child = getChildAt(i);
             LayoutParams lpo = child.getLayoutParams();
-            if (lpo instanceof AbsoluteLayout.LayoutParams){
-                AbsoluteLayout.LayoutParams lp = (AbsoluteLayout.LayoutParams)lpo;
-                child.measure(MeasureSpec.makeMeasureSpec(lp.width,MeasureSpec.EXACTLY),MeasureSpec.makeMeasureSpec(lp.height,MeasureSpec.EXACTLY));
+            if (lpo instanceof AbsoluteLayout.LayoutParams) {
+                AbsoluteLayout.LayoutParams lp = (AbsoluteLayout.LayoutParams) lpo;
+                child.measure(MeasureSpec.makeMeasureSpec(lp.width, MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(lp.height, MeasureSpec.EXACTLY));
             }
         }
-        LayoutParams lp= this.getLayoutParams();
-        this.setMeasuredDimension(lp.width,lp.height);
+        LayoutParams lp = this.getLayoutParams();
+        this.setMeasuredDimension(lp.width, lp.height);
     }
 }

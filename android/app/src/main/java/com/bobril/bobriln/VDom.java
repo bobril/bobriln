@@ -1,6 +1,9 @@
 package com.bobril.bobriln;
 
 import android.content.Context;
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.Path;
 import android.util.Log;
 import android.view.WindowManager;
 
@@ -190,5 +193,19 @@ public class VDom {
             this.height = y;
             if (rootVNode != null) RunIdle();
         }
+    }
+
+    int lastColorCache = Color.TRANSPARENT;
+    Paint lastPaintCache;
+    Path helperPath = new Path();
+
+    public Paint color2Paint(int color) {
+        if (color==Color.TRANSPARENT) return null;
+        if (color==lastColorCache) return lastPaintCache;
+        Paint paint = new Paint();
+        paint.setColor(color);
+        lastColorCache = color;
+        lastPaintCache = paint;
+        return paint;
     }
 }

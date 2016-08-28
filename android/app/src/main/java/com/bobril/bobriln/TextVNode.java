@@ -25,25 +25,10 @@ public class TextVNode extends ViewBasedVNode implements CSSNode.MeasureFunction
 
     @Override
     View createView(Context ctx) {
-        TextView res = new TextView(ctx);
-        updateBackground(res, getStyle().get("background"));
+        DecoratedTextView res = new DecoratedTextView(ctx,this);
         res.setText(this.content);
         res.setTextColor(Color.WHITE);
         return res;
-    }
-
-    private void updateBackground(View view, Object background) {
-        view.setBackgroundColor(ColorUtils.toColor(background));
-    }
-
-    @Override
-    public void setStyle(String styleName, Object styleValue) {
-        if (view!=null) {
-            if (Objects.equals(styleName, "background")) {
-                updateBackground(view, styleValue);
-            }
-        }
-        super.setStyle(styleName, styleValue);
     }
 
     @Override
@@ -60,7 +45,7 @@ public class TextVNode extends ViewBasedVNode implements CSSNode.MeasureFunction
         view.measure(toAndroid(width,widthMode),toAndroid(height,heightMode));
         measureOutput.width=view.getMeasuredWidth();
         measureOutput.height=view.getMeasuredHeight();
-        Log.d("measure",String.format("%s %s %s", this.content, String.valueOf(width), String.valueOf(height)));
+        //Log.d("BobrilN",String.format("Measure: %s %s %s", this.content, String.valueOf(measureOutput.width), String.valueOf(measureOutput.height)));
     }
 
     private static int toAndroid(float size, CSSMeasureMode mode) {
