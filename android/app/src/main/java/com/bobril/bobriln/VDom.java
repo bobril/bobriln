@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
+import android.graphics.RectF;
 import android.util.Log;
 import android.view.WindowManager;
 
@@ -25,6 +26,7 @@ public class VDom {
     int width;
     int height;
     CSSLayoutContext cssLayoutContext = new CSSLayoutContext();
+    float density;
 
     VDom(GlobalApp globalApp) {
         this.globalApp = globalApp;
@@ -191,6 +193,7 @@ public class VDom {
         if (this.width != x || this.height != y) {
             this.width = x;
             this.height = y;
+            this.density = density;
             if (rootVNode != null) RunIdle();
         }
     }
@@ -198,6 +201,9 @@ public class VDom {
     int lastColorCache = Color.TRANSPARENT;
     Paint lastPaintCache;
     Path helperPath = new Path();
+    float[] tempFloatArray = new float[8];
+    int[] tempIntArray = new int[1];
+    RectF tempRectF = new RectF();
 
     public Paint color2Paint(int color) {
         if (color==Color.TRANSPARENT) return null;

@@ -141,6 +141,21 @@ public abstract class ViewBasedVNode extends VNode {
             case "borderEndColor":
                 lazyDecoration().setBorderColor(Spacing.END, styleValue);
                 break;
+            case "borderRadius":
+                lazyDecoration().setBorderRadius(styleValue);
+                break;
+            case "borderTopLeftRadius":
+                lazyDecoration().setBorderTopLeftRadius(styleValue);
+                break;
+            case "borderTopRightRadius":
+                lazyDecoration().setBorderTopRightRadius(styleValue);
+                break;
+            case "borderBottomLeftRadius":
+                lazyDecoration().setBorderBottomLeftRadius(styleValue);
+                break;
+            case "borderBottomRightRadius":
+                lazyDecoration().setBorderBottomRightRadius(styleValue);
+                break;
             case "position":
                 css.setPositionType(toCSSPositionType(styleValue));
                 break;
@@ -332,9 +347,9 @@ public abstract class ViewBasedVNode extends VNode {
 
     private float toCSSDimension(Object value) {
         if (value==null) return CSSConstants.UNDEFINED;
-        if (value instanceof Double) return ((Double)value).floatValue();
-        if (value instanceof Integer) return ((Integer)value).floatValue();
-        if (value instanceof String) return Float.parseFloat((String)value);
+        if (value instanceof Double) return ((Double)value).floatValue()*vdom.density;
+        if (value instanceof Integer) return ((Integer)value).floatValue()*vdom.density;
+        if (value instanceof String) return Float.parseFloat((String)value)*vdom.density;
         return CSSConstants.UNDEFINED;
     }
 
