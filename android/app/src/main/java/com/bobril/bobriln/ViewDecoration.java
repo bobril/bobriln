@@ -114,8 +114,16 @@ public class ViewDecoration {
         }
         if (leftBorderP != null && leftBorderP == topBorderP && topBorderP == rightBorderP && rightBorderP == bottomBorderP) {
             path.rewind();
-            path.addRect(0, 0, width, height, Path.Direction.CW);
-            path.addRect(leftBorderWidth, topBorderWidth, width - rightBorderWidth, height - bottomBorderWidth, Path.Direction.CCW);
+            addCornerOutside90(0, 0, borderRadiusTopLeftX, borderRadiusTopLeftY, 1, 1, 180, path, tempRect, true);
+            addCornerOutside90(width, 0, borderRadiusTopRightX, borderRadiusTopRightY, -1, 1, 270, path, tempRect, false);
+            addCornerOutside90(width, height, borderRadiusBottomRightX, borderRadiusBottomRightY, -1, -1, 0, path, tempRect, false);
+            addCornerOutside90(0, height, borderRadiusBottomLeftX, borderRadiusBottomLeftY, 1, -1, 90, path, tempRect, false);
+            path.close();
+            addCornerInside90(0, 0, leftBorderWidth, topBorderWidth, borderRadiusTopLeftX, borderRadiusTopLeftY, 1, 1, 270, path, tempRect, true);
+            addCornerInside90(0, height, leftBorderWidth, bottomBorderWidth, borderRadiusBottomLeftX, borderRadiusBottomLeftY, 1, -1, 180, path, tempRect, false);
+            addCornerInside90(width, height, rightBorderWidth, bottomBorderWidth, borderRadiusBottomRightX, borderRadiusBottomRightY, -1, -1, 90, path, tempRect, false);
+            addCornerInside90(width, 0, rightBorderWidth, topBorderWidth, borderRadiusTopRightX, borderRadiusTopRightY, -1, 1, 0, path, tempRect, false);
+            path.close();
             canvas.drawPath(path, leftBorderP);
             return;
         }
@@ -283,6 +291,32 @@ public class ViewDecoration {
             path.lineTo(leftBorderWidth, height - bottomBorderWidth);
             path.close();
             canvas.drawPath(path, leftBorderP);
+        }
+    }
+
+    private void addCornerInside90(float x, float y, float borderWidthX, float borderWidthY, float radiusX, float radiusY, float whichX, float whichY, int angle, Path path, RectF tempRect, boolean forceMove) {
+        if (radiusX + radiusY == 0) {
+            if (forceMove)
+                path.moveTo(x+ whichX*borderWidthX, y+whichY*borderWidthY);
+            else
+                path.lineTo(x+ whichX*borderWidthX, y+whichY*borderWidthY);
+        } else {
+            tempRect.set(x+ whichX*borderWidthX, y+whichY*borderWidthY, x + whichX * radiusX, y + whichY * radiusY);
+            tempRect.sort();
+            path.arcTo(tempRect, angle, -90, forceMove);
+        }
+    }
+
+    private void addCornerOutside90(float x, float y, float radiusX, float radiusY, float whichX, float whichY, int angle, Path path, RectF tempRect, boolean forceMove) {
+        if (radiusX + radiusY == 0) {
+            if (forceMove)
+                path.moveTo(x, y);
+            else
+                path.lineTo(x, y);
+        } else {
+            tempRect.set(x, y, x + whichX * radiusX, y + whichY * radiusY);
+            tempRect.sort();
+            path.arcTo(tempRect, angle, 90, forceMove);
         }
     }
 
