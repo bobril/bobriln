@@ -58,10 +58,6 @@ public class ViewDecoration {
             rightBorderWidth = borderWidth.get(Spacing.RIGHT);
         float topBorderWidth = borderWidth.get(Spacing.TOP);
         float bottomBorderWidth = borderWidth.get(Spacing.BOTTOM);
-        if (leftBorderPaint == null) leftBorderWidth = 0;
-        if (topBorderPaint == null) topBorderWidth = 0;
-        if (rightBorderPaint == null) rightBorderWidth = 0;
-        if (bottomBorderPaint == null) bottomBorderWidth = 0;
         Paint leftBorderP = (leftBorderWidth == 0) ? null : leftBorderPaint;
         Paint topBorderP = (topBorderWidth == 0) ? null : topBorderPaint;
         Paint rightBorderP = (rightBorderWidth == 0) ? null : rightBorderPaint;
@@ -129,14 +125,14 @@ public class ViewDecoration {
         }
         if (leftBorderP != null && leftBorderP == topBorderP && topBorderP == rightBorderP) {
             path.rewind();
-            path.moveTo(0, height);
-            path.lineTo(0, 0);
-            path.lineTo(width, 0);
-            path.lineTo(width, height);
-            path.lineTo(width - rightBorderWidth, height - bottomBorderWidth);
-            path.lineTo(width - rightBorderWidth, topBorderWidth);
-            path.lineTo(leftBorderWidth, topBorderWidth);
-            path.lineTo(leftBorderWidth, height - bottomBorderWidth);
+            addCornerOutside45(0, height, borderRadiusBottomLeftX, borderRadiusBottomLeftY, 1, -1, 135, path, tempRect, true);
+            addCornerOutside90(0, 0, borderRadiusTopLeftX, borderRadiusTopLeftY, 1, 1, 180, path, tempRect, false);
+            addCornerOutside90(width, 0, borderRadiusTopRightX, borderRadiusTopRightY, -1, 1, 270, path, tempRect, false);
+            addCornerOutside45(width, height, borderRadiusBottomRightX, borderRadiusBottomRightY, -1, -1, 0, path, tempRect, false);
+            addCornerInside45(width, height, rightBorderWidth, bottomBorderWidth, borderRadiusBottomRightX, borderRadiusBottomRightY, -1, -1, 45, path, tempRect, false);
+            addCornerInside90(width, 0, rightBorderWidth, topBorderWidth, borderRadiusTopRightX, borderRadiusTopRightY, -1, 1, 0, path, tempRect, false);
+            addCornerInside90(0, 0, leftBorderWidth, topBorderWidth, borderRadiusTopLeftX, borderRadiusTopLeftY, 1, 1, 270, path, tempRect, false);
+            addCornerInside45(0, height, leftBorderWidth, bottomBorderWidth, borderRadiusBottomLeftX, borderRadiusBottomLeftY, 1, -1, 180, path, tempRect, false);
             path.close();
             canvas.drawPath(path, leftBorderP);
             leftBorderP = null;
@@ -297,13 +293,32 @@ public class ViewDecoration {
     private void addCornerInside90(float x, float y, float borderWidthX, float borderWidthY, float radiusX, float radiusY, float whichX, float whichY, int angle, Path path, RectF tempRect, boolean forceMove) {
         if (radiusX + radiusY == 0) {
             if (forceMove)
-                path.moveTo(x+ whichX*borderWidthX, y+whichY*borderWidthY);
+                path.moveTo(x + whichX * borderWidthX, y + whichY * borderWidthY);
             else
-                path.lineTo(x+ whichX*borderWidthX, y+whichY*borderWidthY);
+                path.lineTo(x + whichX * borderWidthX, y + whichY * borderWidthY);
         } else {
-            tempRect.set(x+ whichX*borderWidthX, y+whichY*borderWidthY, x + whichX * radiusX, y + whichY * radiusY);
-            tempRect.sort();
+            float cx = x + whichX * radiusX;
+            float cy = y + whichY * radiusY;
+            float rx = radiusX - borderWidthX;
+            float ry = radiusY - borderWidthY;
+            tempRect.set(cx - rx, cy - ry, cx + rx, cy + ry);
             path.arcTo(tempRect, angle, -90, forceMove);
+        }
+    }
+
+    private void addCornerInside45(float x, float y, float borderWidthX, float borderWidthY, float radiusX, float radiusY, float whichX, float whichY, int angle, Path path, RectF tempRect, boolean forceMove) {
+        if (radiusX + radiusY == 0) {
+            if (forceMove)
+                path.moveTo(x + whichX * borderWidthX, y + whichY * borderWidthY);
+            else
+                path.lineTo(x + whichX * borderWidthX, y + whichY * borderWidthY);
+        } else {
+            float cx = x + whichX * radiusX;
+            float cy = y + whichY * radiusY;
+            float rx = radiusX - borderWidthX;
+            float ry = radiusY - borderWidthY;
+            tempRect.set(cx - rx, cy - ry, cx + rx, cy + ry);
+            path.arcTo(tempRect, angle, -45, forceMove);
         }
     }
 
@@ -314,9 +329,28 @@ public class ViewDecoration {
             else
                 path.lineTo(x, y);
         } else {
-            tempRect.set(x, y, x + whichX * radiusX, y + whichY * radiusY);
-            tempRect.sort();
+            float cx = x + whichX * radiusX;
+            float cy = y + whichY * radiusY;
+            float rx = radiusX;
+            float ry = radiusY;
+            tempRect.set(cx - rx, cy - ry, cx + rx, cy + ry);
             path.arcTo(tempRect, angle, 90, forceMove);
+        }
+    }
+
+    private void addCornerOutside45(float x, float y, float radiusX, float radiusY, float whichX, float whichY, int angle, Path path, RectF tempRect, boolean forceMove) {
+        if (radiusX + radiusY == 0) {
+            if (forceMove)
+                path.moveTo(x, y);
+            else
+                path.lineTo(x, y);
+        } else {
+            float cx = x + whichX * radiusX;
+            float cy = y + whichY * radiusY;
+            float rx = radiusX;
+            float ry = radiusY;
+            tempRect.set(cx - rx, cy - ry, cx + rx, cy + ry);
+            path.arcTo(tempRect, angle, 45, forceMove);
         }
     }
 
@@ -327,8 +361,11 @@ public class ViewDecoration {
             else
                 path.lineTo(x + whichX * borderWidthX * 0.5f, y + whichY * borderWidthY * 0.5f);
         } else {
-            tempRect.set(x + whichX * borderWidthX * 0.5f, y + whichY * borderWidthY * 0.5f, x + whichX * radiusX - whichX * borderWidthX * 0.5f, y + whichY * radiusY - whichY * borderWidthY * 0.5f);
-            tempRect.sort();
+            float cx = x + whichX * radiusX;
+            float cy = y + whichY * radiusY;
+            float rx = radiusX - borderWidthX * 0.5f;
+            float ry = radiusY - borderWidthY * 0.5f;
+            tempRect.set(cx - rx, cy - ry, cx + rx, cy + ry);
             path.arcTo(tempRect, angle, 90, false);
         }
     }
@@ -452,19 +489,19 @@ public class ViewDecoration {
         }
         if (value instanceof Double) {
             result[0] = Math.max(0, ((Double) value).floatValue());
-            result[0]*= owner.vdom.density;
+            result[0] *= owner.vdom.density;
             result[1] = result[0];
             return;
         }
         if (value instanceof Float) {
             result[0] = Math.max(0, (Float) value);
-            result[0]*= owner.vdom.density;
+            result[0] *= owner.vdom.density;
             result[1] = result[0];
             return;
         }
         if (value instanceof Integer) {
             result[0] = Math.max(0, ((Integer) value).floatValue());
-            result[0]*= owner.vdom.density;
+            result[0] *= owner.vdom.density;
             result[1] = result[0];
             return;
         }
