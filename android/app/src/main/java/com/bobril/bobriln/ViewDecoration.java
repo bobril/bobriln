@@ -141,14 +141,14 @@ public class ViewDecoration {
         }
         if (topBorderP != null && topBorderP == rightBorderP && rightBorderP == bottomBorderP) {
             path.rewind();
-            path.moveTo(0, 0);
-            path.lineTo(width, 0);
-            path.lineTo(width, height);
-            path.lineTo(0, height);
-            path.lineTo(leftBorderWidth, height - bottomBorderWidth);
-            path.lineTo(width - rightBorderWidth, height - bottomBorderWidth);
-            path.lineTo(width - rightBorderWidth, topBorderWidth);
-            path.lineTo(leftBorderWidth, topBorderWidth);
+            addCornerOutside45(0, 0, borderRadiusTopLeftX, borderRadiusTopLeftY, 1, 1, 225, path, tempRect, true);
+            addCornerOutside90(width, 0, borderRadiusTopRightX, borderRadiusTopRightY, -1, 1, 270, path, tempRect, false);
+            addCornerOutside90(width, height, borderRadiusBottomRightX, borderRadiusBottomRightY, -1, -1, 0, path, tempRect, false);
+            addCornerOutside45(0, height, borderRadiusBottomLeftX, borderRadiusBottomLeftY, 1, -1, 90, path, tempRect, false);
+            addCornerInside45(0, height, leftBorderWidth, bottomBorderWidth, borderRadiusBottomLeftX, borderRadiusBottomLeftY, 1, -1, 135, path, tempRect, false);
+            addCornerInside90(width, height, rightBorderWidth, bottomBorderWidth, borderRadiusBottomRightX, borderRadiusBottomRightY, -1, -1, 90, path, tempRect, false);
+            addCornerInside90(width, 0, rightBorderWidth, topBorderWidth, borderRadiusTopRightX, borderRadiusTopRightY, -1, 1, 0, path, tempRect, false);
+            addCornerInside45(0, 0, leftBorderWidth, topBorderWidth, borderRadiusTopLeftX, borderRadiusTopLeftY, 1, 1, 270, path, tempRect, false);
             path.close();
             canvas.drawPath(path, topBorderP);
             topBorderP = null;
@@ -157,14 +157,14 @@ public class ViewDecoration {
         }
         if (rightBorderP != null && rightBorderP == bottomBorderP && bottomBorderP == leftBorderP) {
             path.rewind();
-            path.moveTo(width, 0);
-            path.lineTo(width, height);
-            path.lineTo(0, height);
-            path.lineTo(0, 0);
-            path.lineTo(leftBorderWidth, topBorderWidth);
-            path.lineTo(leftBorderWidth, height - bottomBorderWidth);
-            path.lineTo(width - rightBorderWidth, height - bottomBorderWidth);
-            path.lineTo(width - rightBorderWidth, topBorderWidth);
+            addCornerOutside45(width, 0, borderRadiusTopRightX, borderRadiusTopRightY, -1, 1, -45, path, tempRect, true);
+            addCornerOutside90(width, height, borderRadiusBottomRightX, borderRadiusBottomRightY, -1, -1, 0, path, tempRect, false);
+            addCornerOutside90(0, height, borderRadiusBottomLeftX, borderRadiusBottomLeftY, 1, -1, 90, path, tempRect, false);
+            addCornerOutside45(0, 0, borderRadiusTopLeftX, borderRadiusTopLeftY, 1, 1, 180, path, tempRect, false);
+            addCornerInside45(0, 0, leftBorderWidth, topBorderWidth, borderRadiusTopLeftX, borderRadiusTopLeftY, 1, 1, 225, path, tempRect, false);
+            addCornerInside90(0, height, leftBorderWidth, bottomBorderWidth, borderRadiusBottomLeftX, borderRadiusBottomLeftY, 1, -1, 180, path, tempRect, false);
+            addCornerInside90(width, height, rightBorderWidth, bottomBorderWidth, borderRadiusBottomRightX, borderRadiusBottomRightY, -1, -1, 90, path, tempRect, false);
+            addCornerInside45(width, 0, rightBorderWidth, topBorderWidth, borderRadiusTopRightX, borderRadiusTopRightY, -1, 1, 0, path, tempRect, false);
             path.close();
             canvas.drawPath(path, rightBorderP);
             rightBorderP = null;
@@ -173,14 +173,14 @@ public class ViewDecoration {
         }
         if (bottomBorderP != null && bottomBorderP == leftBorderP && leftBorderP == topBorderP) {
             path.rewind();
-            path.moveTo(width, height);
-            path.lineTo(0, height);
-            path.lineTo(0, 0);
-            path.lineTo(width, 0);
-            path.lineTo(width - rightBorderWidth, topBorderWidth);
-            path.lineTo(leftBorderWidth, topBorderWidth);
-            path.lineTo(leftBorderWidth, height - bottomBorderWidth);
-            path.lineTo(width - rightBorderWidth, height - bottomBorderWidth);
+            addCornerOutside45(width, height, borderRadiusBottomRightX, borderRadiusBottomRightY, -1, -1, 45, path, tempRect, true);
+            addCornerOutside90(0, height, borderRadiusBottomLeftX, borderRadiusBottomLeftY, 1, -1, 90, path, tempRect, false);
+            addCornerOutside90(0, 0, borderRadiusTopLeftX, borderRadiusTopLeftY, 1, 1, 180, path, tempRect, false);
+            addCornerOutside45(width, 0, borderRadiusTopRightX, borderRadiusTopRightY, -1, 1, 270, path, tempRect, false);
+            addCornerInside45(width, 0, rightBorderWidth, topBorderWidth, borderRadiusTopRightX, borderRadiusTopRightY, -1, 1, -45, path, tempRect, false);
+            addCornerInside90(0, 0, leftBorderWidth, topBorderWidth, borderRadiusTopLeftX, borderRadiusTopLeftY, 1, 1, 270, path, tempRect, false);
+            addCornerInside90(0, height, leftBorderWidth, bottomBorderWidth, borderRadiusBottomLeftX, borderRadiusBottomLeftY, 1, -1, 180, path, tempRect, false);
+            addCornerInside45(width, height, rightBorderWidth, bottomBorderWidth, borderRadiusBottomRightX, borderRadiusBottomRightY, -1, -1, 90, path, tempRect, false);
             path.close();
             canvas.drawPath(path, bottomBorderP);
             bottomBorderP = null;
@@ -189,12 +189,12 @@ public class ViewDecoration {
         }
         if (leftBorderP != null && leftBorderP == topBorderP) {
             path.rewind();
-            path.moveTo(0, height);
-            path.lineTo(0, 0);
-            path.lineTo(width, 0);
-            path.lineTo(width - rightBorderWidth, topBorderWidth);
-            path.lineTo(leftBorderWidth, topBorderWidth);
-            path.lineTo(leftBorderWidth, height - bottomBorderWidth);
+            addCornerOutside45(0, height, borderRadiusBottomLeftX, borderRadiusBottomLeftY, 1, -1, 135, path, tempRect, true);
+            addCornerOutside90(0, 0, borderRadiusTopLeftX, borderRadiusTopLeftY, 1, 1, 180, path, tempRect, false);
+            addCornerOutside45(width, 0, borderRadiusTopRightX, borderRadiusTopRightY, -1, 1, 270, path, tempRect, false);
+            addCornerInside45(width, 0, rightBorderWidth, topBorderWidth, borderRadiusTopRightX, borderRadiusTopRightY, -1, 1, -45, path, tempRect, false);
+            addCornerInside90(0, 0, leftBorderWidth, topBorderWidth, borderRadiusTopLeftX, borderRadiusTopLeftY, 1, 1, 270, path, tempRect, false);
+            addCornerInside45(0, height, leftBorderWidth, bottomBorderWidth, borderRadiusBottomLeftX, borderRadiusBottomLeftY, 1, -1, 180, path, tempRect, false);
             path.close();
             canvas.drawPath(path, leftBorderP);
             leftBorderP = null;
@@ -202,12 +202,12 @@ public class ViewDecoration {
         }
         if (topBorderP != null && topBorderP == rightBorderP) {
             path.rewind();
-            path.moveTo(0, 0);
-            path.lineTo(width, 0);
-            path.lineTo(width, height);
-            path.lineTo(width - rightBorderWidth, height - bottomBorderWidth);
-            path.lineTo(width - rightBorderWidth, topBorderWidth);
-            path.lineTo(leftBorderWidth, topBorderWidth);
+            addCornerOutside45(0, 0, borderRadiusTopLeftX, borderRadiusTopLeftY, 1, 1, 225, path, tempRect, true);
+            addCornerOutside90(width, 0, borderRadiusTopRightX, borderRadiusTopRightY, -1, 1, 270, path, tempRect, false);
+            addCornerOutside45(width, height, borderRadiusBottomRightX, borderRadiusBottomRightY, -1, -1, 0, path, tempRect, false);
+            addCornerInside45(width, height, rightBorderWidth, bottomBorderWidth, borderRadiusBottomRightX, borderRadiusBottomRightY, -1, -1, 45, path, tempRect, false);
+            addCornerInside90(width, 0, rightBorderWidth, topBorderWidth, borderRadiusTopRightX, borderRadiusTopRightY, -1, 1, 0, path, tempRect, false);
+            addCornerInside45(0, 0, leftBorderWidth, topBorderWidth, borderRadiusTopLeftX, borderRadiusTopLeftY, 1, 1, 270, path, tempRect, false);
             path.close();
             canvas.drawPath(path, topBorderP);
             topBorderP = null;
@@ -215,12 +215,12 @@ public class ViewDecoration {
         }
         if (rightBorderP != null && rightBorderP == bottomBorderP) {
             path.rewind();
-            path.moveTo(width, 0);
-            path.lineTo(width, height);
-            path.lineTo(0, height);
-            path.lineTo(leftBorderWidth, height - bottomBorderWidth);
-            path.lineTo(width - rightBorderWidth, height - bottomBorderWidth);
-            path.lineTo(width - rightBorderWidth, topBorderWidth);
+            addCornerOutside45(width, 0, borderRadiusTopRightX, borderRadiusTopRightY, -1, 1, -45, path, tempRect, true);
+            addCornerOutside90(width, height, borderRadiusBottomRightX, borderRadiusBottomRightY, -1, -1, 0, path, tempRect, false);
+            addCornerOutside45(0, height, borderRadiusBottomLeftX, borderRadiusBottomLeftY, 1, -1, 90, path, tempRect, false);
+            addCornerInside45(0, height, leftBorderWidth, bottomBorderWidth, borderRadiusBottomLeftX, borderRadiusBottomLeftY, 1, -1, 135, path, tempRect, false);
+            addCornerInside90(width, height, rightBorderWidth, bottomBorderWidth, borderRadiusBottomRightX, borderRadiusBottomRightY, -1, -1, 90, path, tempRect, false);
+            addCornerInside45(width, 0, rightBorderWidth, topBorderWidth, borderRadiusTopRightX, borderRadiusTopRightY, -1, 1, 0, path, tempRect, false);
             path.close();
             canvas.drawPath(path, rightBorderP);
             rightBorderP = null;
@@ -228,63 +228,50 @@ public class ViewDecoration {
         }
         if (bottomBorderP != null && bottomBorderP == leftBorderP) {
             path.rewind();
-            path.moveTo(width, height);
-            path.lineTo(0, height);
-            path.lineTo(0, 0);
-            path.lineTo(leftBorderWidth, topBorderWidth);
-            path.lineTo(leftBorderWidth, height - bottomBorderWidth);
-            path.lineTo(width - rightBorderWidth, height - bottomBorderWidth);
+            addCornerOutside45(width, height, borderRadiusBottomRightX, borderRadiusBottomRightY, -1, -1, 45, path, tempRect, true);
+            addCornerOutside90(0, height, borderRadiusBottomLeftX, borderRadiusBottomLeftY, 1, -1, 90, path, tempRect, false);
+            addCornerOutside45(0, 0, borderRadiusTopLeftX, borderRadiusTopLeftY, 1, 1, 180, path, tempRect, false);
+            addCornerInside45(0, 0, leftBorderWidth, topBorderWidth, borderRadiusTopLeftX, borderRadiusTopLeftY, 1, 1, 225, path, tempRect, false);
+            addCornerInside90(0, height, leftBorderWidth, bottomBorderWidth, borderRadiusBottomLeftX, borderRadiusBottomLeftY, 1, -1, 180, path, tempRect, false);
+            addCornerInside45(width, height, rightBorderWidth, bottomBorderWidth, borderRadiusBottomRightX, borderRadiusBottomRightY, -1, -1, 90, path, tempRect, false);
             path.close();
             canvas.drawPath(path, bottomBorderP);
             bottomBorderP = null;
             leftBorderP = null;
         }
-        if (leftBorderP != null && leftBorderP == topBorderP) {
-            path.rewind();
-            path.moveTo(0, height);
-            path.lineTo(0, 0);
-            path.lineTo(width, 0);
-            path.lineTo(width - rightBorderWidth, topBorderWidth);
-            path.lineTo(leftBorderWidth, topBorderWidth);
-            path.lineTo(leftBorderWidth, height - bottomBorderWidth);
-            path.close();
-            canvas.drawPath(path, leftBorderP);
-            leftBorderP = null;
-            topBorderP = null;
-        }
         if (topBorderP != null) {
             path.rewind();
-            path.moveTo(0, 0);
-            path.lineTo(width, 0);
-            path.lineTo(width - rightBorderWidth, topBorderWidth);
-            path.lineTo(leftBorderWidth, topBorderWidth);
+            addCornerOutside45(0, 0, borderRadiusTopLeftX, borderRadiusTopLeftY, 1, 1, 225, path, tempRect, true);
+            addCornerOutside45(width, 0, borderRadiusTopRightX, borderRadiusTopRightY, -1, 1, 270, path, tempRect, false);
+            addCornerInside45(width, 0, rightBorderWidth, topBorderWidth, borderRadiusTopRightX, borderRadiusTopRightY, -1, 1, -45, path, tempRect, false);
+            addCornerInside45(0, 0, leftBorderWidth, topBorderWidth, borderRadiusTopLeftX, borderRadiusTopLeftY, 1, 1, 270, path, tempRect, false);
             path.close();
             canvas.drawPath(path, topBorderP);
         }
         if (rightBorderP != null) {
             path.rewind();
-            path.moveTo(width, 0);
-            path.lineTo(width, height);
-            path.lineTo(width - rightBorderWidth, height - bottomBorderWidth);
-            path.lineTo(width - rightBorderWidth, topBorderWidth);
+            addCornerOutside45(width, 0, borderRadiusTopRightX, borderRadiusTopRightY, -1, 1, -45, path, tempRect, true);
+            addCornerOutside45(width, height, borderRadiusBottomRightX, borderRadiusBottomRightY, -1, -1, 0, path, tempRect, false);
+            addCornerInside45(width, height, rightBorderWidth, bottomBorderWidth, borderRadiusBottomRightX, borderRadiusBottomRightY, -1, -1, 45, path, tempRect, false);
+            addCornerInside45(width, 0, rightBorderWidth, topBorderWidth, borderRadiusTopRightX, borderRadiusTopRightY, -1, 1, 0, path, tempRect, false);
             path.close();
             canvas.drawPath(path, rightBorderP);
         }
         if (bottomBorderP != null) {
             path.rewind();
-            path.moveTo(width, height);
-            path.lineTo(0, height);
-            path.lineTo(leftBorderWidth, height - bottomBorderWidth);
-            path.lineTo(width - rightBorderWidth, height - bottomBorderWidth);
+            addCornerOutside45(width, height, borderRadiusBottomRightX, borderRadiusBottomRightY, -1, -1, 45, path, tempRect, true);
+            addCornerOutside45(0, height, borderRadiusBottomLeftX, borderRadiusBottomLeftY, 1, -1, 90, path, tempRect, false);
+            addCornerInside45(0, height, leftBorderWidth, bottomBorderWidth, borderRadiusBottomLeftX, borderRadiusBottomLeftY, 1, -1, 135, path, tempRect, false);
+            addCornerInside45(width, height, rightBorderWidth, bottomBorderWidth, borderRadiusBottomRightX, borderRadiusBottomRightY, -1, -1, 90, path, tempRect, false);
             path.close();
             canvas.drawPath(path, bottomBorderP);
         }
         if (leftBorderP != null) {
             path.rewind();
-            path.moveTo(0, height);
-            path.lineTo(0, 0);
-            path.lineTo(leftBorderWidth, topBorderWidth);
-            path.lineTo(leftBorderWidth, height - bottomBorderWidth);
+            addCornerOutside45(0, height, borderRadiusBottomLeftX, borderRadiusBottomLeftY, 1, -1, 135, path, tempRect, true);
+            addCornerOutside45(0, 0, borderRadiusTopLeftX, borderRadiusTopLeftY, 1, 1, 180, path, tempRect, false);
+            addCornerInside45(0, 0, leftBorderWidth, topBorderWidth, borderRadiusTopLeftX, borderRadiusTopLeftY, 1, 1, 225, path, tempRect, false);
+            addCornerInside45(0, height, leftBorderWidth, bottomBorderWidth, borderRadiusBottomLeftX, borderRadiusBottomLeftY, 1, -1, 180, path, tempRect, false);
             path.close();
             canvas.drawPath(path, leftBorderP);
         }

@@ -97,7 +97,7 @@ public class GlobalApp implements AccSensorListener.Listener, Gateway {
         vdom = new VDom(this);
     }
 
-    void ShowError(final String text) {
+    public void ShowError(final String text) {
         rootView.post(new Runnable() {
             @Override
             public void run() {
@@ -153,50 +153,55 @@ public class GlobalApp implements AccSensorListener.Listener, Gateway {
         mainActivity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                nativeParamsDecoder.initFromString(param);
-                while (!nativeParamsDecoder.isAnyEnd()) {
-                    int methodIdx = nativeParamsDecoder.readInt();
-                    if (methodIdx == -1) {
-                        // Special Method to Reset Everything - call only during JS start
-                        // String FrameworkName, String platformName, [String nativeMethodName]* run()
-                        for (int i = 0; i < resetMethods.size(); i++) {
-                            resetMethods.get(i).run();
-                        }
-                        nativeResultsEncoder.writeString("Bobril Native");
-                        nativeResultsEncoder.writeString("Android");
-                        for (int i = 0; i < nativeMethodNames.size(); i++) {
-                            nativeResultsEncoder.writeString(nativeMethodNames.get(i));
-                        }
-                        nativeResultsEncoder.writeEndOfBlock();
-                        jsReady = true;
-                    } else if (methodIdx == -2) {
-                        // Special Method to return event result
-                        int id = nativeParamsDecoder.readInt();
-                        boolean eventRes = nativeParamsDecoder.readBoolean();
-                        Gateway.EventResultCallback cb = null;
-                        synchronized (eventEncoder) {
-                            cb = eventCallbacks.remove(id);
-                            if (id==lastEventId-1) {
-                                lastEventId--;
-                            } else {
-                                freeEventIds.add(id);
+                try {
+                    nativeParamsDecoder.initFromString(param);
+                    while (!nativeParamsDecoder.isAnyEnd()) {
+                        int methodIdx = nativeParamsDecoder.readInt();
+                        if (methodIdx == -1) {
+                            // Special Method to Reset Everything - call only during JS start
+                            // String FrameworkName, String platformName, [String nativeMethodName]* run()
+                            for (int i = 0; i < resetMethods.size(); i++) {
+                                resetMethods.get(i).run();
                             }
-                        }
-                        cb.EventResult(eventRes);
-                    } else {
-                        if (methodIdx < 0 || methodIdx >= nativeMethodImpls.size()) {
-                            that.ShowError("JS tried to call unknown method number " + String.valueOf(methodIdx));
+                            nativeResultsEncoder.writeString("Bobril Native");
+                            nativeResultsEncoder.writeString("Android");
+                            for (int i = 0; i < nativeMethodNames.size(); i++) {
+                                nativeResultsEncoder.writeString(nativeMethodNames.get(i));
+                            }
+                            nativeResultsEncoder.writeEndOfBlock();
+                            jsReady = true;
+                        } else if (methodIdx == -2) {
+                            // Special Method to return event result
+                            int id = nativeParamsDecoder.readInt();
+                            boolean eventRes = nativeParamsDecoder.readBoolean();
+                            Gateway.EventResultCallback cb = null;
+                            synchronized (eventEncoder) {
+                                cb = eventCallbacks.remove(id);
+                                if (id==lastEventId-1) {
+                                    lastEventId--;
+                                } else {
+                                    freeEventIds.add(id);
+                                }
+                            }
+                            cb.EventResult(eventRes);
                         } else {
-                            final NativeCall nc = nativeMethodImpls.get(methodIdx);
-                            nc.Run(nativeParamsDecoder, nativeResultsEncoder);
+                            if (methodIdx < 0 || methodIdx >= nativeMethodImpls.size()) {
+                                that.ShowError("JS tried to call unknown method number " + String.valueOf(methodIdx));
+                            } else {
+                                final NativeCall nc = nativeMethodImpls.get(methodIdx);
+                                nc.Run(nativeParamsDecoder, nativeResultsEncoder);
+                            }
+                            nativeResultsEncoder.writeEndOfBlock();
                         }
-                        nativeResultsEncoder.writeEndOfBlock();
+                        while (!nativeParamsDecoder.isAnyEnd()) nativeParamsDecoder.next();
+                        nativeParamsDecoder.next();
                     }
-                    while (!nativeParamsDecoder.isAnyEnd()) nativeParamsDecoder.next();
-                    nativeParamsDecoder.next();
-                }
-                if (vdom.WantIdle()) {
-                    vdom.RunIdle();
+                    if (vdom.WantIdle()) {
+                        vdom.RunIdle();
+                    }
+                } catch (Exception e) {
+                    that.ShowError(e.toString());
+                    e.printStackTrace();
                 }
                 uiSync.release();
             }
