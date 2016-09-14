@@ -27,6 +27,7 @@ public class VDom {
     int height;
     CSSLayoutContext cssLayoutContext = new CSSLayoutContext();
     float density;
+    public TextStyleAccumulator textStyleAccu = new TextStyleAccumulator();
 
     VDom(GlobalApp globalApp) {
         this.globalApp = globalApp;

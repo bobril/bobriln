@@ -20,6 +20,8 @@ public abstract class ViewBasedVNode extends VNode {
     View view;
     PublicCSSNode css;
     ViewDecoration decoration;
+    TextStyle textStyle;
+
     ViewBasedVNode() {
         css = new PublicCSSNode();
     }
@@ -31,13 +33,13 @@ public abstract class ViewBasedVNode extends VNode {
         float ly = css.getLayoutY();
         float w = css.getLayoutWidth();
         float h = css.getLayoutHeight();
-        if (x<lx || y<ly || x>lx+w || y>ly+h) return 0;
-        if (children!=null) {
+        if (x < lx || y < ly || x > lx + w || y > ly + h) return 0;
+        if (children != null) {
             int c = children.size();
-            for(int i=0;i<c;i++) {
+            for (int i = 0; i < c; i++) {
                 VNode ch = children.get(i);
-                int id = ch.pos2NodeId(x-lx,y-ly);
-                if (id>0) return id;
+                int id = ch.pos2NodeId(x - lx, y - ly);
+                if (id > 0) return id;
             }
         }
         return nodeId;
@@ -46,37 +48,36 @@ public abstract class ViewBasedVNode extends VNode {
     @Override
     int validateView(int indexInParent) {
         needValidate = false;
-        if (view==null) {
+        if (view == null) {
             view = createView(vdom.ctx);
         }
-        ViewGroupBasedVNode parent = (ViewGroupBasedVNode)getParent();
-        if (parent!=null) {
-            ViewGroup g=(ViewGroup)parent.view;
-            if (css.getParent()==null)
-                parent.css.addChildAt(css,indexInParent);
-            else
-            {
+        ViewGroupBasedVNode parent = (ViewGroupBasedVNode) getParent();
+        if (parent != null) {
+            ViewGroup g = (ViewGroup) parent.view;
+            if (css.getParent() == null)
+                parent.css.addChildAt(css, indexInParent);
+            else {
                 int ci = parent.css.indexOf(css);
-                if (ci!=indexInParent) {
+                if (ci != indexInParent) {
                     parent.css.removeChildAt(ci);
                     parent.css.addChildAt(css, indexInParent);
                 }
             }
-            if (view.getParent()==null) {
-                g.addView(view,indexInParent);
-            } else if (view.getParent()==g) {
+            if (view.getParent() == null) {
+                g.addView(view, indexInParent);
+            } else if (view.getParent() == g) {
                 int ci = g.indexOfChild(view);
-                if (ci!=indexInParent) {
+                if (ci != indexInParent) {
                     g.removeViewAt(ci);
-                    g.addView(view,indexInParent);
+                    g.addView(view, indexInParent);
                 }
             }
         }
-        return indexInParent+1;
+        return indexInParent + 1;
     }
 
     public void invalidateView() {
-        if (view!=null) {
+        if (view != null) {
             view.invalidate();
         }
     }
@@ -91,14 +92,14 @@ public abstract class ViewBasedVNode extends VNode {
     public void flushLayout() {
         if (!css.hasNewLayout()) return;
         view.setLayoutParams(new AbsoluteLayout.LayoutParams(
-                (int)Math.round(css.getLayoutWidth()),
-                (int)Math.round(css.getLayoutHeight()),
-                (int)Math.round(css.getLayoutX()),
-                (int)Math.round(css.getLayoutY())
+                (int) Math.round(css.getLayoutWidth()),
+                (int) Math.round(css.getLayoutHeight()),
+                (int) Math.round(css.getLayoutX()),
+                (int) Math.round(css.getLayoutY())
         ));
         int dir = View.TEXT_DIRECTION_INHERIT;
-        if (css.getLayoutDirection()== CSSDirection.LTR) dir = View.TEXT_DIRECTION_LTR;
-        else if (css.getLayoutDirection()== CSSDirection.RTL) dir = View.TEXT_DIRECTION_RTL;
+        if (css.getLayoutDirection() == CSSDirection.LTR) dir = View.TEXT_DIRECTION_LTR;
+        else if (css.getLayoutDirection() == CSSDirection.RTL) dir = View.TEXT_DIRECTION_RTL;
         view.setTextDirection(dir);
         view.requestLayout();
         css.markLayoutSeen();
@@ -288,20 +289,23 @@ public abstract class ViewBasedVNode extends VNode {
             case "borderEndWidth":
                 css.setBorder(Spacing.END, toCSSDimension(styleValue));
                 break;
+            default:
+                textStyle = TextStyle.setStyle(textStyle, styleName, styleValue);
+                break;
         }
     }
 
     private CSSPositionType toCSSPositionType(Object value) {
-        if (value==null) return CSSPositionType.RELATIVE;
+        if (value == null) return CSSPositionType.RELATIVE;
         if (value.equals("absolute")) return CSSPositionType.ABSOLUTE;
         if (value.equals("relative")) return CSSPositionType.RELATIVE;
         return CSSPositionType.RELATIVE;
     }
 
     private CSSWrap toCSSWrap(Object value) {
-        if (value==null) return CSSWrap.NOWRAP;
+        if (value == null) return CSSWrap.NOWRAP;
         if (value instanceof Boolean) {
-            return ((Boolean)value).booleanValue()?CSSWrap.WRAP:CSSWrap.NOWRAP;
+            return (Boolean) value ? CSSWrap.WRAP : CSSWrap.NOWRAP;
         }
         if (value.equals("wrap")) return CSSWrap.WRAP;
         if (value.equals("nowrap")) return CSSWrap.NOWRAP;
@@ -309,7 +313,7 @@ public abstract class ViewBasedVNode extends VNode {
     }
 
     private CSSJustify toCSSJustify(Object value) {
-        if (value==null) return CSSJustify.FLEX_START;
+        if (value == null) return CSSJustify.FLEX_START;
         if (value.equals("flex-start")) return CSSJustify.FLEX_START;
         if (value.equals("flex-end")) return CSSJustify.FLEX_END;
         if (value.equals("center")) return CSSJustify.CENTER;
@@ -319,7 +323,7 @@ public abstract class ViewBasedVNode extends VNode {
     }
 
     private CSSAlign toCSSAlign(Object value, CSSAlign dflt) {
-        if (value==null) return dflt;
+        if (value == null) return dflt;
         if (value.equals("flex-start")) return CSSAlign.FLEX_START;
         if (value.equals("flex-end")) return CSSAlign.FLEX_END;
         if (value.equals("auto")) return CSSAlign.AUTO;
@@ -329,7 +333,7 @@ public abstract class ViewBasedVNode extends VNode {
     }
 
     private CSSFlexDirection toFlexDirection(Object value) {
-        if (value==null) return CSSFlexDirection.COLUMN;
+        if (value == null) return CSSFlexDirection.COLUMN;
         if (value.equals("column")) return CSSFlexDirection.COLUMN;
         if (value.equals("row")) return CSSFlexDirection.ROW;
         if (value.equals("column-reverse")) return CSSFlexDirection.COLUMN_REVERSE;
@@ -338,18 +342,18 @@ public abstract class ViewBasedVNode extends VNode {
     }
 
     private float toFlex(Object value) {
-        if (value==null) return 0;
-        if (value instanceof Double) return ((Double)value).floatValue();
-        if (value instanceof Integer) return ((Integer)value).floatValue();
-        if (value instanceof String) return Float.parseFloat((String)value);
+        if (value == null) return 0;
+        if (value instanceof Double) return ((Double) value).floatValue();
+        if (value instanceof Integer) return ((Integer) value).floatValue();
+        if (value instanceof String) return Float.parseFloat((String) value);
         return 0;
     }
 
     private float toCSSDimension(Object value) {
-        if (value==null) return CSSConstants.UNDEFINED;
-        if (value instanceof Double) return ((Double)value).floatValue()*vdom.density;
-        if (value instanceof Integer) return ((Integer)value).floatValue()*vdom.density;
-        if (value instanceof String) return Float.parseFloat((String)value)*vdom.density;
+        if (value == null) return CSSConstants.UNDEFINED;
+        if (value instanceof Double) return ((Double) value).floatValue() * vdom.density;
+        if (value instanceof Integer) return ((Integer) value).floatValue() * vdom.density;
+        if (value instanceof String) return Float.parseFloat((String) value) * vdom.density;
         return CSSConstants.UNDEFINED;
     }
 
@@ -374,7 +378,7 @@ public abstract class ViewBasedVNode extends VNode {
     }
 
     public ViewDecoration lazyDecoration() {
-        if (decoration==null) {
+        if (decoration == null) {
             decoration = new ViewDecoration(this);
         }
         return decoration;
