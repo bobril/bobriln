@@ -5,7 +5,6 @@ import android.content.res.Configuration;
 import android.graphics.Point;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.Display;
 
 public class MainActivity extends Activity {
@@ -17,7 +16,7 @@ public class MainActivity extends Activity {
         if (globalApp == null) {
             globalApp = new GlobalApp(getApplicationContext());
         }
-        RootView rootView = new RootView(this,globalApp);
+        NViewRoot rootView = new NViewRoot(this,globalApp);
         setContentView(rootView);
         globalApp.OnCreate(rootView,this);
         updateMediumSize();

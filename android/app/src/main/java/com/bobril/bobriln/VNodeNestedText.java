@@ -1,6 +1,6 @@
 package com.bobril.bobriln;
 
-public class NestedTextVNode extends VNode implements SpanTextProvider, IHasTextStyle {
+public class VNodeNestedText extends VNode implements SpanTextProvider, IHasTextStyle {
     TextStyle textStyle;
 
     @Override

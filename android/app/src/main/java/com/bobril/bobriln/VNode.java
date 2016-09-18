@@ -20,7 +20,7 @@ public abstract class VNode {
     public VNode getParent() {
         VNode p = this.lparent;
         while (p != null) {
-            if (!(p instanceof VirtualVNode)) return p;
+            if (!(p instanceof VNodeVirtual)) return p;
             p = p.lparent;
         }
         return null;

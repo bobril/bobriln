@@ -5,8 +5,6 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.RectF;
-import android.util.Log;
-import android.view.WindowManager;
 
 import com.facebook.csslayout.CSSLayoutContext;
 
@@ -18,8 +16,8 @@ import java.util.Map;
 
 public class VDom {
     GlobalApp globalApp;
-    RootView rootView;
-    RootVNode rootVNode;
+    NViewRoot rootView;
+    VNodeRoot rootVNode;
     Context ctx;
     List<VNode> nodes;
     public Map<String, List<Object>> styleDefs;
@@ -33,7 +31,7 @@ public class VDom {
         this.globalApp = globalApp;
         this.styleDefs = new HashMap<>();
         this.ctx = globalApp.applicationContext;
-        rootVNode = new RootVNode(globalApp.tag2factory);
+        rootVNode = new VNodeRoot(globalApp.tag2factory);
         final VDom that = this;
         globalApp.RegisterResetMethod(new Runnable() {
             @Override
@@ -88,13 +86,19 @@ public class VDom {
         globalApp.RegisterTag("Text", new IVNodeFactory() {
             @Override
             public VNode create() {
-                return new TextVNode();
+                return new VNodeText();
             }
         });
         globalApp.RegisterTag("View", new IVNodeFactory() {
             @Override
             public VNode create() {
-                return new ViewVNode();
+                return new VNodeView();
+            }
+        });
+        globalApp.RegisterTag("Image", new IVNodeFactory() {
+            @Override
+            public VNode create() {
+                return new VNodeImage();
             }
         });
     }
@@ -121,7 +125,7 @@ public class VDom {
     }
 
     public void reset() {
-        rootVNode = new RootVNode(globalApp.tag2factory);
+        rootVNode = new VNodeRoot(globalApp.tag2factory);
         rootVNode.view = rootView;
         if (rootView != null) rootView.removeAllViews();
         nodes = new ArrayList<>();
@@ -181,7 +185,7 @@ public class VDom {
         rootVNode.flushLayout();
     }
 
-    public void SetRootView(RootView rootView) {
+    public void SetRootView(NViewRoot rootView) {
         this.rootView = rootView;
         if (rootVNode != null) {
             rootVNode.unsetView();

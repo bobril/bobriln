@@ -11,7 +11,7 @@ import com.facebook.csslayout.CSSDirection;
 import com.facebook.csslayout.Spacing;
 
 public class ViewDecoration {
-    ViewBasedVNode owner;
+    VNodeViewBased owner;
     int backgroundColor;
     Paint backgroundPaint;
     IntSpacing borderColor;
@@ -29,7 +29,7 @@ public class ViewDecoration {
     float userBorderRadiusBottomRightX;
     float userBorderRadiusBottomRightY;
 
-    public ViewDecoration(ViewBasedVNode owner) {
+    public ViewDecoration(VNodeViewBased owner) {
         this.owner = owner;
     }
 

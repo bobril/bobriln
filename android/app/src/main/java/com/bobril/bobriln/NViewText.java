@@ -4,10 +4,10 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.widget.TextView;
 
-public class DecoratedTextView extends TextView {
-    final ViewBasedVNode owner;
+public class NViewText extends TextView {
+    final VNodeViewBased owner;
 
-    public DecoratedTextView(Context ctx, ViewBasedVNode owner) {
+    public NViewText(Context ctx, VNodeViewBased owner) {
         super(ctx);
         this.owner = owner;
     }

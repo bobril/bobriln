@@ -20,7 +20,6 @@ import android.widget.PopupMenu;
 import android.widget.TextView;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,7 +29,7 @@ public class GlobalApp implements AccSensorListener.Listener, Gateway {
     final Context applicationContext;
     AccSensorListener shakeDetector;
     WebView webView;
-    RootView rootView;
+    NViewRoot rootView;
     TextView errorView;
     VDom vdom;
     boolean jsReady;
@@ -46,6 +45,7 @@ public class GlobalApp implements AccSensorListener.Listener, Gateway {
     ArrayList<Runnable> resetMethods = new ArrayList();
     Map<String, IVNodeFactory> tag2factory = new HashMap<>();
     private MainActivity mainActivity;
+    public ImageCache imageCache;
 
     public class Jsiface {
         GlobalApp globalApp;
@@ -94,8 +94,29 @@ public class GlobalApp implements AccSensorListener.Listener, Gateway {
             }
         });
         vdom = new VDom(this);
+        imageCache = new ImageCache() {
+            @Override
+            protected void updated() {
+                rootView.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        invalidateRecursive(rootView);
+                    }
+                });
+            }
+        };
     }
 
+    public void invalidateRecursive(ViewGroup layout) {
+        int count = layout.getChildCount();
+        View child;
+        for (int i = 0; i < count; i++) {
+            child = layout.getChildAt(i);
+            if(child instanceof ViewGroup)
+                invalidateRecursive((ViewGroup) child);
+            child.invalidate();
+        }
+    }
     public void ShowError(final String text) {
         rootView.post(new Runnable() {
             @Override
@@ -249,7 +270,7 @@ public class GlobalApp implements AccSensorListener.Listener, Gateway {
         });
     }
 
-    public void OnCreate(RootView rootView, MainActivity mainActivity) {
+    public void OnCreate(NViewRoot rootView, MainActivity mainActivity) {
         this.mainActivity = mainActivity;
         boolean first = this.rootView == null;
         this.rootView = rootView;
@@ -284,6 +305,7 @@ public class GlobalApp implements AccSensorListener.Listener, Gateway {
     }
 
     public void setSize(int x, int y, int rotation, float density) {
+        imageCache.setDensity(density);
         Map<String,Object> param = new HashMap<String,Object>();
         param.put("width", Math.round(x/density));
         param.put("height", Math.round(y/density));
