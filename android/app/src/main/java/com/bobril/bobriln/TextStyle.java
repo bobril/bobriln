@@ -1,11 +1,6 @@
 package com.bobril.bobriln;
 
 import android.graphics.Color;
-import android.text.SpannableStringBuilder;
-import android.text.Spanned;
-import android.text.style.BackgroundColorSpan;
-import android.text.style.ForegroundColorSpan;
-import android.text.style.StyleSpan;
 
 public class TextStyle {
     static final int F_ITALIC = 1;
@@ -16,11 +11,13 @@ public class TextStyle {
 
     static final int F_COLOR = 256;
     static final int F_BACKGROUND = 512;
+    static final int F_FONT_SIZE = 1024;
 
     public int flags;
     public int simple;
     public int color;
     public int background;
+    public float fontSize;
 
     static TextStyle setStyle(TextStyle current, String styleName, Object styleValue) {
         switch (styleName) {
@@ -90,6 +87,18 @@ public class TextStyle {
                 }
                 return current;
             }
+            case "fontSize": {
+                if (current==null) {
+                    if (styleValue!=null) current = new TextStyle(); else return null;
+                }
+                if (styleValue==null) {
+                    current.flags &= ~F_FONT_SIZE;
+                } else {
+                    current.flags |= F_FONT_SIZE;
+                    current.fontSize = FloatUtils.parseFloat(styleValue);
+                }
+                return current;
+            }
         }
         return current;
     }
@@ -102,6 +111,9 @@ public class TextStyle {
         }
         if ((newFlags & F_COLOR)!=0) {
             this.color = merge.color;
+        }
+        if ((newFlags & F_FONT_SIZE)!=0) {
+            this.fontSize = merge.fontSize;
         }
         if ((newFlags & F_SIMPLE_MASK)!=0) {
             this.simple &= ~(newFlags & F_SIMPLE_MASK);
@@ -118,8 +130,12 @@ public class TextStyle {
         if ((newFlags & F_COLOR)!=0) {
             this.color = Color.WHITE;
         }
+        if ((newFlags & F_FONT_SIZE)!=0) {
+            this.fontSize = 12;
+        }
         if ((newFlags & F_SIMPLE_MASK)!=0) {
             this.simple &= ~(newFlags & F_SIMPLE_MASK);
         }
+        flags = -1;
     }
 }

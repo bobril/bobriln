@@ -15,13 +15,14 @@ public class NViewImage extends NViewView {
     @Override
     protected void dispatchDraw(Canvas canvas) {
         super.dispatchDraw(canvas);
-        List<Object> source = ((VNodeImage)this.owner).source;
-        if (source!=null) {
-            Bitmap b=((VNodeImage) this.owner).vdom.globalApp.imageCache.get(source);
-            if (b!=null) {
-                RectF r=this.owner.vdom.tempRectF;
-                r.set(0,0,FloatUtils.unboxToFloat(source.get(0)),FloatUtils.unboxToFloat(source.get(1)));
-                canvas.drawBitmap(b,null,r,null);
+        List<Object> source = ((VNodeImage) this.owner).source;
+        if (source != null) {
+            Bitmap b = ((VNodeImage) this.owner).vdom.globalApp.imageCache.get(source);
+            float density = this.owner.vdom.density;
+            if (b != null) {
+                RectF r = this.owner.vdom.tempRectF;
+                r.set(0, 0, density * FloatUtils.unboxToFloat(source.get(0)), density * FloatUtils.unboxToFloat(source.get(1)));
+                canvas.drawBitmap(b, null, r, null);
             }
         }
     }

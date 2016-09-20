@@ -36,7 +36,7 @@ public class VNodeText extends VNodeViewBased implements CSSNode.MeasureFunction
         int res = super.validateView(indexInParent);
         builder.clear();
         final TextStyleAccumulator accu = vdom.textStyleAccu;
-        accu.ResetBuilder(builder);
+        accu.ResetBuilder(builder, vdom.density);
         int flags = 0;
         VNode n = this.lparent;
         while (n != null) {
