@@ -1,12 +1,14 @@
 package com.bobril.bobriln;
 
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.style.AbsoluteSizeSpan;
 import android.text.style.BackgroundColorSpan;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.StyleSpan;
+import android.text.style.UnderlineSpan;
 
 public class TextStyleAccumulator {
     SpannableStringBuilder builder;
@@ -16,8 +18,7 @@ public class TextStyleAccumulator {
 
     int offsetColor;
     int offsetBackground;
-    int offsetItalic;
-    int offsetBold;
+    int offsetBoldItalic;
     int offsetUnderline;
     int offsetFontSize;
 
@@ -32,8 +33,7 @@ public class TextStyleAccumulator {
         offset = 0;
         offsetColor = -1;
         offsetBackground = -1;
-        offsetItalic = -1;
-        offsetBold = -1;
+        offsetBoldItalic = -1;
         offsetUnderline = -1;
         offsetFontSize = -1;
         lastBackground = Color.TRANSPARENT;
@@ -65,12 +65,24 @@ public class TextStyleAccumulator {
         }
     }
 
-    void FlushBold() {
-        if (offsetBold >= 0) {
-            if (offsetBold < offset && (lastSimple & TextStyle.F_BOLD) != 0) {
-                builder.setSpan(new StyleSpan(android.graphics.Typeface.BOLD), offsetBold, offset, Spanned.SPAN_INCLUSIVE_INCLUSIVE);
+    void FlushUnderline() {
+        if (offsetUnderline >= 0) {
+            if (offsetUnderline < offset) {
+                builder.setSpan(new UnderlineSpan(), offsetUnderline, offset, Spanned.SPAN_INCLUSIVE_INCLUSIVE);
             }
-            offsetBold = -1;
+            offsetUnderline = -1;
+        }
+    }
+
+    void FlushBoldItalic() {
+        if (offsetBoldItalic >= 0) {
+            if (offsetBoldItalic < offset && (lastSimple & TextStyle.F_BOLD) != 0 || (lastSimple & TextStyle.F_ITALIC) != 0) {
+                int style = Typeface.NORMAL;
+                if ((lastSimple & TextStyle.F_BOLD) != 0) style |= Typeface.BOLD;
+                if ((lastSimple & TextStyle.F_ITALIC) != 0) style |= Typeface.ITALIC;
+                builder.setSpan(new StyleSpan(style), offsetBoldItalic, offset, Spanned.SPAN_INCLUSIVE_INCLUSIVE);
+            }
+            offsetBoldItalic = -1;
         }
     }
 
@@ -86,8 +98,9 @@ public class TextStyleAccumulator {
     public void Flush() {
         FlushColor();
         FlushBackground();
-        FlushBold();
+        FlushBoldItalic();
         FlushFontSize();
+        FlushUnderline();
     }
 
     public void ApplyTextStyle(TextStyle style) {
@@ -104,11 +117,27 @@ public class TextStyleAccumulator {
             }
         }
         if ((lastSimple & TextStyle.F_BOLD) != (style.simple & TextStyle.F_BOLD)) {
-            FlushBold();
+            FlushBoldItalic();
             lastSimple &= ~TextStyle.F_BOLD;
             if ((style.simple & TextStyle.F_BOLD) != 0) {
-                offsetBold = offset;
+                offsetBoldItalic = offset;
                 lastSimple |= TextStyle.F_BOLD;
+            }
+        }
+        if ((lastSimple & TextStyle.F_ITALIC) != (style.simple & TextStyle.F_ITALIC)) {
+            FlushBoldItalic();
+            lastSimple &= ~TextStyle.F_ITALIC;
+            if ((style.simple & TextStyle.F_ITALIC) != 0) {
+                offsetBoldItalic = offset;
+                lastSimple |= TextStyle.F_ITALIC;
+            }
+        }
+        if ((lastSimple & TextStyle.F_UNDERLINE) != (style.simple & TextStyle.F_UNDERLINE)) {
+            FlushUnderline();
+            lastSimple &= ~TextStyle.F_UNDERLINE;
+            if ((style.simple & TextStyle.F_UNDERLINE) != 0) {
+                offsetUnderline = offset;
+                lastSimple |= TextStyle.F_UNDERLINE;
             }
         }
         if (lastFontSize != style.fontSize) {
