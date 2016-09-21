@@ -4,6 +4,8 @@ import android.content.Context;
 import android.util.Log;
 import android.view.View;
 
+import com.facebook.csslayout.FloatUtil;
+
 import java.util.List;
 
 public class VNodeImage extends VNodeViewGroupBased {
@@ -21,14 +23,20 @@ public class VNodeImage extends VNodeViewGroupBased {
     public List<Object> source;
 
     @Override
+    int validateView(int indexInParent) {
+        int res = super.validateView(indexInParent);
+        if (source!=null) {
+            css.setStyleWidth(FloatUtils.unboxToFloat(source.get(0))*vdom.density);
+            css.setStyleHeight(FloatUtils.unboxToFloat(source.get(1))*vdom.density);
+        }
+        return res;
+    }
+
+    @Override
     public void setAttr(String attrName, Object attrValue) {
         super.setAttr(attrName, attrValue);
         if (attrName.equals("source")) {
             this.source = (List<Object>) attrValue;
-            if (this.source!=null) {
-                setStyle("width",this.source.get(0));
-                setStyle("height",this.source.get(1));
-            }
         }
     }
 
