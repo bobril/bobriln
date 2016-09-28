@@ -12,23 +12,22 @@ declare var __bobriln: {
 
 const nativeMethodName2Idx: { [name: string]: number } = Object.create(null);
 const eventDecoder = new decoder.Decoder();
-const eventEncoder = new encoder.Encoder();
 const nativeMethodParamEncoder = new encoder.Encoder();
 const nativeMethodResultDecoder = new decoder.Decoder();
-const nativeCallResultCallbacks: ((decoder: decoder.Decoder) => any)[] = [];
-const nativeCallResultResolvers: ((any) => void)[] = [];
-const nativeCallResultRejecters: ((any) => void)[] = [];
-let localPlatformName: string = null;
+const nativeCallResultCallbacks: (((decoder: decoder.Decoder) => any) | undefined)[] = [];
+const nativeCallResultResolvers: ((param: any) => void)[] = [];
+const nativeCallResultRejecters: ((param: any) => void)[] = [];
+let localPlatformName: string | undefined = undefined;
 export function platformName() {
     return localPlatformName;
 }
 let readyResolver: () => void;
-export let readyPromise: Promise<any> = new Promise((resolve, reject) => {
+export let readyPromise: Promise<any> = new Promise((resolve, _reject) => {
     readyResolver = resolve;
 });
 
 function reset() {
-    let params = prepareToCallNativeByIndex(-1);
+    prepareToCallNativeByIndex(-1);
     callNativeAsync((decoder: decoder.Decoder) => {
         let fw = decoder.readAny();
         if (fw != "Bobril Native") throw new Error("Wrong framework " + fw);
@@ -43,7 +42,7 @@ function reset() {
     });
 }
 
-let eventHandler: (name: string, param: Object, nodeId: number, time: number) => boolean | PromiseLike<boolean> = null;
+let eventHandler: ((name: string, param: Object, nodeId: number, time: number) => boolean | PromiseLike<boolean>) | undefined = undefined;
 
 export function setEventHandler(handler: (name: string, param: Object, nodeId: number, time: number) => boolean | PromiseLike<boolean>) {
     eventHandler = handler;
@@ -82,7 +81,7 @@ function __bobrilncb() {
         while (!eventDecoder.isAnyEnd()) eventDecoder.next();
         eventDecoder.next();
         console.log("Event " + name + " " + JSON.stringify(param) + " node:" + nodeId + " time:" + time);
-        let res = eventHandler(name, param, nodeId, time);
+        let res = eventHandler!(name, param, nodeId, time);
         if (res === true || res === false) {
             if (id >= 0) writeEventResult(id, <boolean>res);
         } else {
@@ -102,13 +101,7 @@ function __bobrilncb() {
     }
 }
 
-window["__bobrilncb"] = __bobrilncb;
-
-function parseSkipper(decoder: decoder.Decoder): any {
-    while (!decoder.isAnyEnd()) decoder.next();
-    decoder.next();
-    return undefined;
-}
+(window as any)["__bobrilncb"] = __bobrilncb;
 
 export function prepareToCallNativeByName(name: string): encoder.Encoder {
     const idx = nativeMethodName2Idx[name];
@@ -156,7 +149,7 @@ function scheduleNativeCall() {
 
 export function callNativeIgnoreResult() {
     nativeMethodParamEncoder.writeEndOfBlock();
-    nativeCallResultCallbacks.push(null);
+    nativeCallResultCallbacks.push(undefined);
     scheduleNativeCall();
 }
 

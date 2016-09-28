@@ -20,20 +20,20 @@ const enum StateType {
 }
 
 export class Decoder {
-    buf: Uint8Array;
-    dv: DataView;
+    buf: Uint8Array | undefined;
+    dv: DataView | undefined;
     ofs: number;
     len: number;
     stack: number[];
     peekType: PeekType;
-    peekLiteral: number | string | boolean;
+    peekLiteral: number | string | boolean | undefined;
 
     constructor() {
-        this.buf = null;
+        this.buf = undefined;
         this.ofs = 0;
         this.len = 0;
         this.stack = [];
-        this.dv = null;
+        this.dv = undefined;
         this.peekType = PeekType.EOF;
         this.peekLiteral = undefined;
     }
@@ -45,30 +45,30 @@ export class Decoder {
         }
         const buf = this.buf;
         for (let i = 0; i < len; i++) {
-            buf[i] = value.charCodeAt(i);
+            buf![i] = value.charCodeAt(i);
         }
         this.ofs = 0;
         this.len = len;
-        this.dv = null;
+        this.dv = undefined;
         this.stack.length = 0;
         this.peekType = PeekType.EOF;
         this.peekLiteral = undefined;
         this.next();
     }
 
-    private setPeek(type: PeekType, lit: number | string | boolean, ofs: number) {
+    private setPeek(type: PeekType, lit: number | string | boolean | undefined, ofs: number) {
         this.peekType = type;
         this.peekLiteral = lit;
         this.ofs = ofs;
     }
 
-    private throwEOF() {
+    private throwEOF(): never {
         throw new Error("EOF too early");
     }
 
     private getDv(): DataView {
-        if (this.dv !== null) return this.dv;
-        this.dv = new DataView(this.buf.buffer);
+        if (this.dv !== undefined) return this.dv;
+        this.dv = new DataView(this.buf!.buffer);
         return this.dv;
     }
 
@@ -83,15 +83,15 @@ export class Decoder {
             let oofs = 0;
             while (oofs < batchLen) {
                 if (ofs >= len) this.throwEOF();
-                let b = buf[ofs++];
+                let b = buf![ofs++];
                 if (b < 0x80) {
                     sb[oofs++] = b;
                 } else if (b < 0xc0) {
                     if (ofs >= len) this.throwEOF();
-                    sb[oofs++] = ((b - 0x80) << 8) + buf[ofs++];
+                    sb[oofs++] = ((b - 0x80) << 8) + buf![ofs++];
                 } else {
                     if (ofs + 1 >= len) this.throwEOF();
-                    sb[oofs++] = (buf[ofs] << 8) + buf[ofs + 1];
+                    sb[oofs++] = (buf![ofs] << 8) + buf![ofs + 1];
                     ofs += 2;
                 }
             }
@@ -104,20 +104,20 @@ export class Decoder {
     private readVarLenInt(lenBytesM1: number, ofs: number): number {
         if (lenBytesM1 === 0) {
             this.ofs = ofs + 1;
-            return this.buf[ofs];
+            return this.buf![ofs];
         }
         if (lenBytesM1 === 1) {
             this.ofs = ofs + 2;
-            let buf = this.buf;
+            let buf = this.buf!;
             return 256 + (buf[ofs] << 8) + buf[ofs + 1];
         }
         if (lenBytesM1 === 2) {
             this.ofs = ofs + 3;
-            let buf = this.buf;
+            let buf = this.buf!;
             return 0x10100 + (buf[ofs] << 16) + (buf[ofs + 1] << 8) + buf[ofs + 2];
         }
         this.ofs = ofs + 4;
-        let buf = this.buf;
+        let buf = this.buf!;
         return 0x1010100 + (buf[ofs] << 24) + (buf[ofs + 1] << 16) + (buf[ofs + 2] << 8) + buf[ofs + 3];
     }
 
@@ -165,7 +165,7 @@ export class Decoder {
                 break;
             }
         }
-        let buf = this.buf;
+        let buf = this.buf!;
         let ofs = this.ofs;
         let len = this.len;
         if (ofs >= len) {
@@ -258,11 +258,11 @@ export class Decoder {
                 break;
             }
             case EncodedType.Null: {
-                this.setPeek(PeekType.Null, null, ofs);
+                this.setPeek(PeekType.Null, undefined, ofs);
                 break;
             }
             case EncodedType.EndOfBlock: {
-                this.setPeek(PeekType.EndOfBlock, null, ofs);
+                this.setPeek(PeekType.EndOfBlock, undefined, ofs);
                 break;
             }
             default:
@@ -283,6 +283,7 @@ export class Decoder {
             case PeekType.EOF:
             case PeekType.EndOfBlock: {
                 this.throwEOF();
+                break;
             }
             case PeekType.Boolean:
             case PeekType.Null:
@@ -299,7 +300,7 @@ export class Decoder {
             case PeekType.ArrayStart: {
                 let res: any[] = [];
                 this.next();
-                while (this.peekType !== PeekType.ArrayEnd) {
+                while (this.peekType as any !== PeekType.ArrayEnd) {
                     res.push(this.readAny());
                 }
                 this.next();
@@ -308,8 +309,8 @@ export class Decoder {
             case PeekType.MapStart: {
                 let res = Object.create(null);
                 this.next();
-                while (this.peekType !== PeekType.MapEnd) {
-                    if (this.peekType !== PeekType.String)
+                while (this.peekType as any !== PeekType.MapEnd) {
+                    if (this.peekType as any !== PeekType.String)
                         throw new Error("Object key is not string");
                     let key = <string>this.peekLiteral;
                     this.next();

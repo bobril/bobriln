@@ -20,7 +20,7 @@ export const asap = (() => {
             callbacks.push(callback);
         };
     } else {
-        var timeout: number;
+        var timeout: number | undefined;
         var timeoutFn: (cb: () => void, timeout: number) => number = window.setImmediate || setTimeout;
         return (callback: () => void) => {
             callbacks.push(callback);
@@ -43,7 +43,7 @@ if (!(<any>window).Promise) {
             }
         }
 
-        function handle(deferred: Array<(v: any) => any>) {
+        function handle(this: any, deferred: Array<(v: any) => any>) {
             if (this.s/*tate*/ === null) {
                 this.d/*eferreds*/.push(deferred);
                 return;
@@ -65,14 +65,14 @@ if (!(<any>window).Promise) {
             });
         }
 
-        function finale() {
+        function finale(this: any) {
             for (var i = 0, len = this.d/*eferreds*/.length; i < len; i++) {
                 handle.call(this, this.d/*eferreds*/[i]);
             }
             this.d/*eferreds*/ = null;
         }
 
-        function reject(newValue: any) {
+        function reject(this: any, newValue: any) {
             this.s/*tate*/ = false;
             this.v/*alue*/ = newValue;
             finale.call(this);
@@ -103,7 +103,7 @@ if (!(<any>window).Promise) {
             }
         }
 
-        function resolve(newValue: any) {
+        function resolve(this: any, newValue: any) {
             try { //Promise Resolution Procedure: https://github.com/promises-aplus/promises-spec#the-promise-resolution-procedure
                 if (newValue === this) throw new TypeError('Promise selfresolve');
                 if (Object(newValue) === newValue) {
@@ -119,7 +119,7 @@ if (!(<any>window).Promise) {
             } catch (e) { reject.call(this, e); }
         }
 
-        function Promise(fn: (onFulfilled: (value: any) => void, onRejected: (reason: any) => void) => void) {
+        function Promise(this: any, fn: (onFulfilled: (value: any) => void, onRejected: (reason: any) => void) => void) {
             this.s/*tate*/ = null;
             this.v/*alue*/ = null;
             this.d/*eferreds*/ = <Array<Array<() => void>>>[];
@@ -127,14 +127,14 @@ if (!(<any>window).Promise) {
             doResolve(fn, bind(resolve, this), bind(reject, this));
         }
 
-        Promise.prototype.then = function (onFulfilled: any, onRejected?: any) {
+        Promise.prototype.then = function (this: any, onFulfilled: any, onRejected?: any) {
             var me = this;
             return new (<any>Promise)((resolve: any, reject: any) => {
                 handle.call(me, [onFulfilled, onRejected, resolve, reject]);
             });
         };
 
-        Promise.prototype['catch'] = function (onRejected?: any) {
+        Promise.prototype['catch'] = function (this: any, onRejected?: any) {
             return this.then(undefined, onRejected);
         };
 
@@ -180,7 +180,7 @@ if (!(<any>window).Promise) {
             });
         };
 
-        (<any>Promise).reject = (value: any) => new (<any>Promise)((resolve: any, reject: (reason: any) => void) => {
+        (<any>Promise).reject = (value: any) => new (<any>Promise)((_resolve: any, reject: (reason: any) => void) => {
             reject(value);
         });
 

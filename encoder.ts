@@ -2,7 +2,7 @@ import { EncodedType } from './decEncCommon';
 
 export class Encoder {
     buf: Uint8Array;
-    dv: DataView;
+    dv: DataView | undefined;
     ofs: number;
     len: number;
 
@@ -10,7 +10,7 @@ export class Encoder {
         this.ofs = 0;
         this.len = 16;
         this.buf = new Uint8Array(this.len);
-        this.dv = null;
+        this.dv = undefined;
     }
 
     private reserve(capacity: number) {
@@ -19,7 +19,7 @@ export class Encoder {
         let oldBuf = this.buf;
         this.buf = new Uint8Array(this.len);
         this.buf.set(oldBuf);
-        this.dv = null;
+        this.dv = undefined;
     }
 
     toLatin1String(): string {
@@ -43,7 +43,7 @@ export class Encoder {
     }
 
     private getDv(): DataView {
-        if (this.dv !== null) return this.dv;
+        if (this.dv !== undefined) return this.dv;
         this.dv = new DataView(this.buf.buffer);
         return this.dv;
     }
@@ -191,7 +191,7 @@ export class Encoder {
         for (let i = 0; i < len; i++) {
             let key = keys[i];
             this.writeString(key);
-            this.writeAny(obj[key]);
+            this.writeAny((obj as any)[key]);
         }
     }
 
