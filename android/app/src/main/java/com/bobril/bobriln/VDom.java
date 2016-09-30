@@ -89,31 +89,13 @@ public class VDom {
                 return new VNodeText();
             }
         });
-        globalApp.RegisterTag("text", new IVNodeFactory() {
-            @Override
-            public VNode create() {
-                return new VNodeText();
-            }
-        });
         globalApp.RegisterTag("View", new IVNodeFactory() {
             @Override
             public VNode create() {
                 return new VNodeView();
             }
         });
-        globalApp.RegisterTag("view", new IVNodeFactory() {
-            @Override
-            public VNode create() {
-                return new VNodeView();
-            }
-        });
         globalApp.RegisterTag("Image", new IVNodeFactory() {
-            @Override
-            public VNode create() {
-                return new VNodeImage();
-            }
-        });
-        globalApp.RegisterTag("image", new IVNodeFactory() {
             @Override
             public VNode create() {
                 return new VNodeImage();

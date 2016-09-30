@@ -302,6 +302,7 @@ public class GlobalApp implements AccSensorListener.Listener, Gateway {
     @Override
     public void RegisterTag(String tag, IVNodeFactory factory) {
         tag2factory.put(tag, factory);
+        tag2factory.put(tag.substring(0,1).toLowerCase()+tag.substring(1), factory);
     }
 
     public void setSize(int x, int y, int rotation, float density) {

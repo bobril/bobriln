@@ -4,11 +4,12 @@ import android.content.Context;
 import android.text.SpannableStringBuilder;
 import android.view.View;
 
+import com.facebook.csslayout.CSSLayoutContext;
 import com.facebook.csslayout.CSSMeasureMode;
 import com.facebook.csslayout.CSSNode;
 import com.facebook.csslayout.MeasureOutput;
 
-public class VNodeText extends VNodeViewBased implements CSSNode.MeasureFunction, SpanTextProvider {
+public class VNodeText extends VNodeViewBased implements CSSNode.MeasureFunction, IHasTextStyle {
     SpannableStringBuilder builder;
 
     VNodeText() {
@@ -18,10 +19,10 @@ public class VNodeText extends VNodeViewBased implements CSSNode.MeasureFunction
 
     @Override
     VNode createByTag(String tag) {
-        if (tag!=null && tag.equals("Text")) {
+        if (tag == null || tag.equals("Text")) {
             return new VNodeNestedText();
         }
-        return lparent.createByTag(tag);
+        return super.createByTag(tag);
     }
 
     @Override
@@ -34,6 +35,11 @@ public class VNodeText extends VNodeViewBased implements CSSNode.MeasureFunction
     @Override
     int validateView(int indexInParent) {
         int res = super.validateView(indexInParent);
+        if (children!=null) {
+            for (int i=0;i<children.size();i++) {
+                children.get(i).validateView(0);
+            }
+        }
         builder.clear();
         final TextStyleAccumulator accu = vdom.textStyleAccu;
         accu.ResetBuilder(builder, vdom.density);
@@ -48,9 +54,9 @@ public class VNodeText extends VNodeViewBased implements CSSNode.MeasureFunction
             n = n.lparent;
         }
         accu.style.AddDefaults(flags);
-        BuildSpannableString(accu);
+        BuildSpannableString(this, accu);
         accu.Flush();
-        ((NViewText) view).setText(builder);
+        ((NViewText)view).setText(builder);
         return res;
     }
 
@@ -77,26 +83,62 @@ public class VNodeText extends VNodeViewBased implements CSSNode.MeasureFunction
         return View.MeasureSpec.makeMeasureSpec((int) Math.round(size), View.MeasureSpec.UNSPECIFIED);
     }
 
-    @Override
-    public void BuildSpannableString(TextStyleAccumulator accu) {
-        TextStyle backupStyle = accu.style;
-        if (textStyle != null) {
-            textStyle.ReadInherited(accu.style, textStyle.flags);
-            accu.style = textStyle;
-        }
-        if (content != null) {
-            accu.ApplyTextStyle(accu.style);
-            accu.append(content);
-        } else {
-            if (children != null) {
-                for (int i = 0; i < children.size(); i++) {
-                    VNode node = children.get(i);
-                    if (node instanceof SpanTextProvider) {
-                        ((SpanTextProvider) node).BuildSpannableString(accu);
+    public void BuildSpannableString(VNode that, TextStyleAccumulator accu) {
+        if (that == this || that instanceof VNodeNestedText) {
+            TextStyle backupStyle = accu.style;
+
+            TextStyle textStyle = ((IHasTextStyle) that).getTextStyle();
+            if (textStyle != null) {
+                textStyle.ReadInherited(accu.style, textStyle.flags);
+                accu.style = textStyle;
+            }
+            if (that.content != null) {
+                accu.ApplyTextStyle(accu.style);
+                accu.append(that.content);
+            } else {
+                if (children != null) {
+                    for (int i = 0; i < children.size(); i++) {
+                        VNode node = children.get(i);
+                        BuildSpannableString(node, accu);
                     }
                 }
             }
+            accu.style = backupStyle;
+        } else if (that instanceof VNodeViewBased) {
+            accu.appendView((VNodeViewBased) that);
         }
-        accu.style = backupStyle;
+    }
+
+    @Override
+    public boolean isDirty() {
+        if (children==null) return super.isDirty();
+        for (int i = 0; i < children.size(); i++) {
+            if (children.get(i).isDirty()) return true;
+        }
+        return super.isDirty();
+    }
+
+    @Override
+    public void flushLayout() {
+        if (children!=null) {
+            for (int i=0;i<children.size();i++) {
+                children.get(i).flushLayout();
+            }
+        }
+        super.flushLayout();
+    }
+
+    @Override
+    public void doLayout(CSSLayoutContext ctx) {
+        super.doLayout(ctx);
+        if (children==null) return;
+        for (int i = 0; i < children.size(); i++) {
+            children.get(i).doLayout(ctx);
+        }
+    }
+
+    @Override
+    public TextStyle getTextStyle() {
+        return textStyle;
     }
 }

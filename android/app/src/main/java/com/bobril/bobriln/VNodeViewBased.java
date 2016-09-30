@@ -2,6 +2,7 @@ package com.bobril.bobriln;
 
 import android.content.Context;
 import android.view.View;
+import android.view.ViewDebug;
 import android.view.ViewGroup;
 import android.widget.AbsoluteLayout;
 
@@ -27,6 +28,11 @@ public abstract class VNodeViewBased extends VNode {
 
     abstract View createView(Context ctx);
 
+    @Override
+    VNode createByTag(String tag) {
+        return vdom.rootVNode.createByTag(tag);
+    }
+
     public int pos2NodeId(float x, float y) {
         float lx = css.getLayoutX();
         float ly = css.getLayoutY();
@@ -50,25 +56,28 @@ public abstract class VNodeViewBased extends VNode {
         if (view == null) {
             view = createView(vdom.ctx);
         }
-        VNodeViewGroupBased parent = (VNodeViewGroupBased) getParent();
-        if (parent != null) {
-            ViewGroup g = (ViewGroup) parent.view;
-            if (css.getParent() == null)
-                parent.css.addChildAt(css, indexInParent);
-            else {
-                int ci = parent.css.indexOf(css);
-                if (ci != indexInParent) {
-                    parent.css.removeChildAt(ci);
+        VNode trueParent = getParent();
+        if (trueParent instanceof VNodeViewGroupBased) {
+            VNodeViewGroupBased parent = (VNodeViewGroupBased) getParent();
+            if (parent != null) {
+                ViewGroup g = (ViewGroup) parent.view;
+                if (css.getParent() == null)
                     parent.css.addChildAt(css, indexInParent);
+                else {
+                    int ci = parent.css.indexOf(css);
+                    if (ci != indexInParent) {
+                        parent.css.removeChildAt(ci);
+                        parent.css.addChildAt(css, indexInParent);
+                    }
                 }
-            }
-            if (view.getParent() == null) {
-                g.addView(view, indexInParent);
-            } else if (view.getParent() == g) {
-                int ci = g.indexOfChild(view);
-                if (ci != indexInParent) {
-                    g.removeViewAt(ci);
+                if (view.getParent() == null) {
                     g.addView(view, indexInParent);
+                } else if (view.getParent() == g) {
+                    int ci = g.indexOfChild(view);
+                    if (ci != indexInParent) {
+                        g.removeViewAt(ci);
+                        g.addView(view, indexInParent);
+                    }
                 }
             }
         }

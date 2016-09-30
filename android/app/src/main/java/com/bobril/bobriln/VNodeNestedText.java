@@ -1,11 +1,28 @@
 package com.bobril.bobriln;
 
-public class VNodeNestedText extends VNode implements SpanTextProvider, IHasTextStyle {
+public class VNodeNestedText extends VNode implements IHasTextStyle {
     TextStyle textStyle;
 
     @Override
     VNode createByTag(String tag) {
         return lparent.createByTag(tag);
+    }
+
+    @Override
+    public VNode getParent() {
+        return lparent.getParent();
+    }
+
+    @Override
+    int validateView(int indexInParent) {
+        int res = super.validateView(indexInParent);
+        int idx = 0;
+        if (children!=null) {
+            for (int i=0;i<children.size();i++) {
+                idx = children.get(i).validateView(idx);
+            }
+        }
+        return res;
     }
 
     @Override
@@ -20,25 +37,21 @@ public class VNodeNestedText extends VNode implements SpanTextProvider, IHasText
     }
 
     @Override
-    public void BuildSpannableString(TextStyleAccumulator accu) {
-        TextStyle backupStyle = accu.style;
-        if (textStyle != null) {
-            textStyle.ReadInherited(accu.style, textStyle.flags);
-            accu.style = textStyle;
+    public boolean isDirty() {
+        if (children==null) return false;
+        for (int i = 0; i < children.size(); i++) {
+            if (children.get(i).isDirty()) return true;
         }
-        if (content != null) {
-            accu.ApplyTextStyle(accu.style);
-            accu.append(content);
-        } else {
-            if (children != null) {
-                for (int i = 0; i < children.size(); i++) {
-                    VNode node = children.get(i);
-                    if (node instanceof SpanTextProvider) {
-                        ((SpanTextProvider) node).BuildSpannableString(accu);
-                    }
-                }
+        return false;
+    }
+
+    @Override
+    public void flushLayout() {
+        if (children!=null) {
+            for (int i=0;i<children.size();i++) {
+                children.get(i).flushLayout();
             }
         }
-        accu.style = backupStyle;
+        super.flushLayout();
     }
 }

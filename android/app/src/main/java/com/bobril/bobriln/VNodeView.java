@@ -11,11 +11,6 @@ public class VNodeView extends VNodeViewGroupBased {
     }
 
     @Override
-    VNode createByTag(String tag) {
-        return lparent.createByTag(tag);
-    }
-
-    @Override
     void setStringChild(String content) {
         if (content==null) {
             this.content=null;

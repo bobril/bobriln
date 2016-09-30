@@ -2,6 +2,7 @@ package com.bobril.bobriln;
 
 public abstract class VNodeViewGroupBased extends VNodeViewBased {
 
+    @Override
     int validateView(int indexInParent) {
         int res = super.validateView(indexInParent);
         int idx = 0;
