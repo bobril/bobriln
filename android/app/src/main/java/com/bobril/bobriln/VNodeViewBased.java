@@ -372,7 +372,8 @@ public abstract class VNodeViewBased extends VNode {
 
     @Override
     public void doLayout(CSSLayoutContext ctx) {
-        css.calculateLayout(ctx);
+        VNode parent = getParent();
+        if (parent instanceof VNodeRoot || !(parent instanceof VNodeViewGroupBased)) css.calculateLayout(ctx);
     }
 
     @Override

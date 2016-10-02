@@ -312,17 +312,20 @@ public class GlobalApp implements AccSensorListener.Listener, Gateway {
         param.put("height", Math.round(y/density));
         param.put("rotation", rotation);
         param.put("density", density);
-        emitJSEvent("onResize", param, 0);
+        emitJSEvent("onResize", param, 0, -1);
         vdom.setSize(x,y,density);
     }
 
     @Override
-    public void emitJSEvent(String name, Map<String, Object> param, int nodeId) {
+    public void emitJSEvent(String name, Map<String, Object> param, int nodeId, long time) {
         synchronized (eventEncoder) {
             eventEncoder.writeNumber(-1);
             eventEncoder.writeString(name);
             eventEncoder.writeObject(param);
             eventEncoder.writeNumber(nodeId);
+            if (time!=-1) {
+                eventEncoder.writeNumber(System.currentTimeMillis()+time-SystemClock.uptimeMillis());
+            }
             eventEncoder.writeEndOfBlock();
         }
         if (jsReady) triggerJS();

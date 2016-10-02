@@ -101,6 +101,12 @@ public class VDom {
                 return new VNodeImage();
             }
         });
+        globalApp.RegisterTag("Switch", new IVNodeFactory() {
+            @Override
+            public VNode create() {
+                return new VNodeSwitch();
+            }
+        });
     }
 
     private void setStyleDef(String name, Map<String, Object> style, Map<String, Map<String, Object>> pseudo) {

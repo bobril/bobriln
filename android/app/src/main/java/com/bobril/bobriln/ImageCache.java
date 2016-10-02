@@ -56,7 +56,13 @@ public class ImageCache implements Runnable {
         while (true) {
             try {
                 List<Object> param = loadQueue.poll(1, TimeUnit.MINUTES);
-                if (param==null) continue;
+                if (param == null) continue;
+                if (param.size() < 3) {
+                    cache.put(param, Bitmap.createBitmap(Math.max(1, Math.round(FloatUtils.unboxToFloat(param.get(0)))),
+                            Math.max(1, Math.round(FloatUtils.unboxToFloat(param.get(1)))), Bitmap.Config.ARGB_8888));
+                    updated();
+                    continue;
+                }
                 int idx = 2;
                 while (idx < param.size() - 2) {
                     double den = FloatUtils.unboxToFloat(param.get(idx));

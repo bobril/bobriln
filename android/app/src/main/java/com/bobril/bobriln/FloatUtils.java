@@ -31,3 +31,4 @@ public final class FloatUtils {
         throw new RuntimeException("Cannot parse " + value.toString() + " to float");
     }
 }
+

@@ -16,6 +16,7 @@ public interface Gateway {
 
     void RegisterTag(String tag, IVNodeFactory factory);
 
-    void emitJSEvent(String name, Map<String, Object> param, int nodeId);
+    // use time=-1 for current time, use nodeId=0 for undefined node
+    void emitJSEvent(String name, Map<String, Object> param, int nodeId, long time);
     void emitJSEvent(String name, Map<String, Object> param, int nodeId, long time, EventResultCallback callback);
 }

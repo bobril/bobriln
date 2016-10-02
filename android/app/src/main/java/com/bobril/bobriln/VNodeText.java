@@ -11,6 +11,7 @@ import com.facebook.csslayout.MeasureOutput;
 
 public class VNodeText extends VNodeViewBased implements CSSNode.MeasureFunction, IHasTextStyle {
     SpannableStringBuilder builder;
+    public SpanVNode[] spanVNodes;
 
     VNodeText() {
         css.setMeasureFunction(this);
@@ -55,8 +56,11 @@ public class VNodeText extends VNodeViewBased implements CSSNode.MeasureFunction
         }
         accu.style.AddDefaults(flags);
         BuildSpannableString(this, accu);
-        accu.Flush();
+        spanVNodes = accu.Flush();
         ((NViewText)view).setText(builder);
+        if (spanVNodes!=null) for(int i=0;i<spanVNodes.length; i++) {
+            spanVNodes[i].node.view.setPare
+        }
         return res;
     }
 

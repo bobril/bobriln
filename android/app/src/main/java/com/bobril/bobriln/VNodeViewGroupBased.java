@@ -1,5 +1,7 @@
 package com.bobril.bobriln;
 
+import com.facebook.csslayout.CSSLayoutContext;
+
 public abstract class VNodeViewGroupBased extends VNodeViewBased {
 
     @Override
@@ -12,6 +14,16 @@ public abstract class VNodeViewGroupBased extends VNodeViewBased {
             }
         }
         return res;
+    }
+
+    @Override
+    public void doLayout(CSSLayoutContext ctx) {
+        if (children!=null) {
+            for (int i=0;i<children.size();i++) {
+                children.get(i).doLayout(ctx);
+            }
+        }
+        super.doLayout(ctx);
     }
 
     @Override
