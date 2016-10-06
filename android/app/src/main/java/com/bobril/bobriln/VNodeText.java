@@ -1,8 +1,13 @@
 package com.bobril.bobriln;
 
 import android.content.Context;
+import android.graphics.Path;
+import android.graphics.RectF;
+import android.text.Layout;
 import android.text.SpannableStringBuilder;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.TextView;
 
 import com.facebook.csslayout.CSSLayoutContext;
 import com.facebook.csslayout.CSSMeasureMode;
@@ -12,6 +17,7 @@ import com.facebook.csslayout.MeasureOutput;
 public class VNodeText extends VNodeViewBased implements CSSNode.MeasureFunction, IHasTextStyle {
     SpannableStringBuilder builder;
     public SpanVNode[] spanVNodes;
+    TextView textView;
 
     VNodeText() {
         css.setMeasureFunction(this);
@@ -29,7 +35,9 @@ public class VNodeText extends VNodeViewBased implements CSSNode.MeasureFunction
     @Override
     View createView(Context ctx) {
         builder = new SpannableStringBuilder();
-        NViewText res = new NViewText(ctx, this);
+        NViewSpansView res = new NViewSpansView(ctx, this);
+        textView = new TextView(ctx);
+        res.addView(textView);
         return res;
     }
 
@@ -57,9 +65,24 @@ public class VNodeText extends VNodeViewBased implements CSSNode.MeasureFunction
         accu.style.AddDefaults(flags);
         BuildSpannableString(this, accu);
         spanVNodes = accu.Flush();
-        ((NViewText)view).setText(builder);
-        if (spanVNodes!=null) for(int i=0;i<spanVNodes.length; i++) {
-            spanVNodes[i].node.view.setPare
+        textView.setText(builder);
+        ViewGroup vg = (ViewGroup)view;
+        if (spanVNodes!=null) {
+            for(int i=0;i<spanVNodes.length; i++) {
+                View cv = spanVNodes[i].node.view;
+                if (vg.getChildCount()-1>i && vg.getChildAt(i+1)==cv) continue;
+                if (cv.getParent()!=null) {
+                    vg.removeView(cv);
+                }
+                vg.addView(cv,i+1);
+            }
+            while (vg.getChildCount()-1>spanVNodes.length) {
+                vg.removeViewAt(vg.getChildCount()-1);
+            }
+        } else {
+            while (vg.getChildCount()>1) {
+                vg.removeViewAt(vg.getChildCount()-1);
+            }
         }
         return res;
     }
@@ -74,8 +97,8 @@ public class VNodeText extends VNodeViewBased implements CSSNode.MeasureFunction
     @Override
     public void measure(CSSNode node, float width, CSSMeasureMode widthMode, float height, CSSMeasureMode heightMode, MeasureOutput measureOutput) {
         view.measure(toAndroid(width, widthMode), toAndroid(height, heightMode));
-        measureOutput.width = view.getMeasuredWidth();
-        measureOutput.height = view.getMeasuredHeight();
+        measureOutput.width = textView.getMeasuredWidth();
+        measureOutput.height = textView.getMeasuredHeight();
         //Log.d("BobrilN",String.format("Measure: %s %s %s", this.content, String.valueOf(measureOutput.width), String.valueOf(measureOutput.height)));
     }
 
@@ -115,19 +138,16 @@ public class VNodeText extends VNodeViewBased implements CSSNode.MeasureFunction
 
     @Override
     public boolean isDirty() {
-        if (children==null) return super.isDirty();
-        for (int i = 0; i < children.size(); i++) {
-            if (children.get(i).isDirty()) return true;
+        if (spanVNodes!=null) for (int i = 0; i < spanVNodes.length; i++) {
+            if (spanVNodes[i].node.isDirty()) return true;
         }
         return super.isDirty();
     }
 
     @Override
     public void flushLayout() {
-        if (children!=null) {
-            for (int i=0;i<children.size();i++) {
-                children.get(i).flushLayout();
-            }
+        if (spanVNodes!=null) for (int i = 0; i < spanVNodes.length; i++) {
+            spanVNodes[i].node.flushLayout();
         }
         super.flushLayout();
     }
@@ -135,9 +155,9 @@ public class VNodeText extends VNodeViewBased implements CSSNode.MeasureFunction
     @Override
     public void doLayout(CSSLayoutContext ctx) {
         super.doLayout(ctx);
-        if (children==null) return;
-        for (int i = 0; i < children.size(); i++) {
-            children.get(i).doLayout(ctx);
+        if (spanVNodes==null) return;
+        for (int i = 0; i < spanVNodes.length; i++) {
+            spanVNodes[i].node.doLayout(ctx);
         }
     }
 

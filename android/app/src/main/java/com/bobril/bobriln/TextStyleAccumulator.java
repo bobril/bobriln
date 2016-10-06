@@ -155,8 +155,8 @@ public class TextStyleAccumulator {
     }
 
     public void appendView(VNodeViewBased node) {
+        SpanVNode span = new SpanVNode(node, this.offset);
         this.offset++;
-        SpanVNode span = new SpanVNode(node);
         this.subVNodes.add(span);
         this.builder.append("B");
         this.builder.setSpan(span, offset - 1, offset, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);

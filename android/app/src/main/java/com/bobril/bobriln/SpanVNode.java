@@ -2,17 +2,20 @@ package com.bobril.bobriln;
 
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.graphics.RectF;
 import android.text.style.ReplacementSpan;
 
 public class SpanVNode extends ReplacementSpan {
     VNodeViewBased node;
+    int offset;
     int x, y;
     int w, h;
     int verticalAlign; // 0-Bottom, 1-Center, 2-Top, 3-Baseline
     int verticalMove; // Only for Baseline
 
-    public SpanVNode(VNodeViewBased node) {
+    public SpanVNode(VNodeViewBased node, int offset) {
         this.node = node;
+        this.offset = offset;
     }
 
     @Override
@@ -98,14 +101,10 @@ public class SpanVNode extends ReplacementSpan {
 
     @Override
     public void draw(Canvas canvas, CharSequence text, int start, int end, float x, int top, int y, int bottom, Paint paint) {
-        int height = Math.round(node.css.getLayoutHeight());
-        int descent = paint.getFontMetricsInt().descent;
-        if (verticalAlign == 3) { // baseline
-            if (verticalMove < 0) {
-                if (-verticalMove > descent) descent = -verticalMove;
-            }
-        }
+    }
 
+    public void calcPos(int top, int bottom, int descent, float x) {
+        int height = Math.round(node.css.getLayoutHeight());
         float transY = 0;
         switch (verticalAlign) {
             case 0: // bottom
@@ -121,11 +120,7 @@ public class SpanVNode extends ReplacementSpan {
                 transY = bottom - descent - height - verticalMove;
                 break;
         }
-        canvas.save();
-        canvas.translate(x, transY);
         this.x = Math.round(x);
         this.y = Math.round(transY);
-        node.view.draw(canvas);
-        canvas.restore();
     }
 }

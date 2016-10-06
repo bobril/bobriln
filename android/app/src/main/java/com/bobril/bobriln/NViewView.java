@@ -49,3 +49,4 @@ public class NViewView extends ViewGroup {
         this.setMeasuredDimension(lp.width, lp.height);
     }
 }
+
