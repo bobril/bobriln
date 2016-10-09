@@ -330,7 +330,7 @@ export declare function createDerivedComponent<TData>(original: (data?: any, chi
 export declare type IProp<T> = (value?: T) => T;
 export declare type IPropAsync<T> = (value?: T | PromiseLike<T>) => T;
 export interface IValueData<T> {
-    value: T | IProp<T>;
+    value?: T | IProp<T>;
     onChange?: (value: T) => void;
 }
 export declare function prop<T>(value: T, onChange?: (value: T, old: T) => void): IProp<T>;

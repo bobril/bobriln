@@ -158,7 +158,7 @@ public class TextStyleAccumulator {
         SpanVNode span = new SpanVNode(node, this.offset);
         this.offset++;
         this.subVNodes.add(span);
-        this.builder.append("B");
+        this.builder.append("\u0010");
         this.builder.setSpan(span, offset - 1, offset, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
     }
 }

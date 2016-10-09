@@ -12,6 +12,8 @@ public class SpanVNode extends ReplacementSpan {
     int w, h;
     int verticalAlign; // 0-Bottom, 1-Center, 2-Top, 3-Baseline
     int verticalMove; // Only for Baseline
+    int descent;
+    public boolean skipDraw;
 
     public SpanVNode(VNodeViewBased node, int offset) {
         this.node = node;
@@ -20,6 +22,7 @@ public class SpanVNode extends ReplacementSpan {
 
     @Override
     public int getSize(Paint paint, CharSequence text, int start, int end, Paint.FontMetricsInt fm) {
+        if (node==null) return 0;
         int height = Math.round(node.css.getLayoutHeight());
         int width = Math.round(node.css.getLayoutWidth());
         this.w = width;
@@ -101,6 +104,28 @@ public class SpanVNode extends ReplacementSpan {
 
     @Override
     public void draw(Canvas canvas, CharSequence text, int start, int end, float x, int top, int y, int bottom, Paint paint) {
+        if (skipDraw) return;
+        if (node==null) return;
+        int height = Math.round(node.css.getLayoutHeight());
+        float transY = 0;
+        switch (verticalAlign) {
+            case 0: // bottom
+                transY = bottom - height;
+                break;
+            case 1: // center
+                transY = top + (bottom - top - height) / 2;
+                break;
+            case 2: // top
+                transY = top;
+                break;
+            case 3: // baseline
+                transY = bottom - descent - height - verticalMove;
+                break;
+        }
+        canvas.save();
+        canvas.translate(x,transY);
+        node.view.draw(canvas);
+        canvas.restore();
     }
 
     public void calcPos(int top, int bottom, int descent, float x) {
@@ -121,6 +146,7 @@ public class SpanVNode extends ReplacementSpan {
                 break;
         }
         this.x = Math.round(x);
+        this.descent = descent;
         this.y = Math.round(transY);
     }
 }

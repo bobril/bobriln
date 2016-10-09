@@ -1,10 +1,9 @@
 package com.bobril.bobriln;
 
 import android.content.Context;
-import android.graphics.Path;
-import android.graphics.RectF;
 import android.text.Layout;
 import android.text.SpannableStringBuilder;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
@@ -14,7 +13,7 @@ import com.facebook.csslayout.CSSMeasureMode;
 import com.facebook.csslayout.CSSNode;
 import com.facebook.csslayout.MeasureOutput;
 
-public class VNodeText extends VNodeViewBased implements CSSNode.MeasureFunction, IHasTextStyle {
+public class VNodeText extends VNodeViewBased implements CSSNode.MeasureFunction, IHasTextStyle, IVNodeTextLike {
     SpannableStringBuilder builder;
     public SpanVNode[] spanVNodes;
     TextView textView;
@@ -26,7 +25,7 @@ public class VNodeText extends VNodeViewBased implements CSSNode.MeasureFunction
 
     @Override
     VNode createByTag(String tag) {
-        if (tag == null || tag.equals("Text")) {
+        if (tag == null || tag.equals("Text") || tag.equals("text")) {
             return new VNodeNestedText();
         }
         return super.createByTag(tag);
@@ -96,18 +95,10 @@ public class VNodeText extends VNodeViewBased implements CSSNode.MeasureFunction
 
     @Override
     public void measure(CSSNode node, float width, CSSMeasureMode widthMode, float height, CSSMeasureMode heightMode, MeasureOutput measureOutput) {
-        view.measure(toAndroid(width, widthMode), toAndroid(height, heightMode));
+        view.measure(FloatUtils.toAndroid(width, widthMode), FloatUtils.toAndroid(height, heightMode));
         measureOutput.width = textView.getMeasuredWidth();
         measureOutput.height = textView.getMeasuredHeight();
         //Log.d("BobrilN",String.format("Measure: %s %s %s", this.content, String.valueOf(measureOutput.width), String.valueOf(measureOutput.height)));
-    }
-
-    private static int toAndroid(float size, CSSMeasureMode mode) {
-        if (mode == CSSMeasureMode.AT_MOST)
-            return View.MeasureSpec.makeMeasureSpec((int) Math.floor(size), View.MeasureSpec.AT_MOST);
-        if (mode == CSSMeasureMode.EXACTLY)
-            return View.MeasureSpec.makeMeasureSpec((int) Math.round(size), View.MeasureSpec.EXACTLY);
-        return View.MeasureSpec.makeMeasureSpec((int) Math.round(size), View.MeasureSpec.UNSPECIFIED);
     }
 
     public void BuildSpannableString(VNode that, TextStyleAccumulator accu) {
@@ -164,5 +155,20 @@ public class VNodeText extends VNodeViewBased implements CSSNode.MeasureFunction
     @Override
     public TextStyle getTextStyle() {
         return textStyle;
+    }
+
+    @Override
+    public SpanVNode[] getSpanVNodes() {
+        return spanVNodes;
+    }
+
+    @Override
+    public Layout getLayout() {
+        return textView.getLayout();
+    }
+
+    @Override
+    public boolean isMeasureByFirst() {
+        return true;
     }
 }

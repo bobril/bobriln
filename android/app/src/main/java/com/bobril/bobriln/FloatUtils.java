@@ -1,5 +1,9 @@
 package com.bobril.bobriln;
 
+import android.view.View;
+
+import com.facebook.csslayout.CSSMeasureMode;
+
 public final class FloatUtils {
     public static float unboxToFloat(Object o) {
         if (o instanceof Double) {
@@ -29,6 +33,14 @@ public final class FloatUtils {
             return (Float) value;
         }
         throw new RuntimeException("Cannot parse " + value.toString() + " to float");
+    }
+
+    static int toAndroid(float size, CSSMeasureMode mode) {
+        if (mode == CSSMeasureMode.AT_MOST)
+            return View.MeasureSpec.makeMeasureSpec((int) Math.floor(size), View.MeasureSpec.AT_MOST);
+        if (mode == CSSMeasureMode.EXACTLY)
+            return View.MeasureSpec.makeMeasureSpec((int) Math.round(size), View.MeasureSpec.EXACTLY);
+        return View.MeasureSpec.makeMeasureSpec((int) Math.round(size), View.MeasureSpec.UNSPECIFIED);
     }
 }
 

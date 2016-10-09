@@ -107,6 +107,12 @@ public class VDom {
                 return new VNodeSwitch();
             }
         });
+        globalApp.RegisterTag("TextInput", new IVNodeFactory() {
+            @Override
+            public VNode create() {
+                return new VNodeTextInput();
+            }
+        });
     }
 
     private void setStyleDef(String name, Map<String, Object> style, Map<String, Map<String, Object>> pseudo) {
