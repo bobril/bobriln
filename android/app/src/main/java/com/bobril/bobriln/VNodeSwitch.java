@@ -7,6 +7,7 @@ import android.widget.Switch;
 
 import com.facebook.csslayout.CSSMeasureMode;
 import com.facebook.csslayout.CSSNode;
+import com.facebook.csslayout.CSSNodeAPI;
 import com.facebook.csslayout.MeasureOutput;
 
 import java.util.HashMap;
@@ -45,7 +46,7 @@ public class VNodeSwitch extends VNodeView implements CompoundButton.OnCheckedCh
         vdom.globalApp.emitJSEvent("onChange", params, nodeId, -1);
     }
 
-    public void measure(CSSNode node, float width, CSSMeasureMode widthMode, float height, CSSMeasureMode heightMode, MeasureOutput measureOutput) {
+    public void measure(CSSNodeAPI node, float width, CSSMeasureMode widthMode, float height, CSSMeasureMode heightMode, MeasureOutput measureOutput) {
         view.measure(toAndroid(width, widthMode), toAndroid(height, heightMode));
         measureOutput.width = view.getMeasuredWidth();
         measureOutput.height = view.getMeasuredHeight();

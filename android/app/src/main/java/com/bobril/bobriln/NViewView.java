@@ -17,8 +17,9 @@ public class NViewView extends ViewGroup {
     @Override
     protected void dispatchDraw(Canvas canvas) {
         ViewDecoration decoration = owner.getDecoration();
-        if (decoration != null) decoration.onDraw(canvas);
+        if (decoration != null) decoration.onBeforeDraw(canvas);
         super.dispatchDraw(canvas);
+        if (decoration != null) decoration.onAfterDraw(canvas);
     }
 
     @Override

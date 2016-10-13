@@ -3,7 +3,6 @@ package com.bobril.bobriln;
 import android.content.Context;
 import android.text.Layout;
 import android.text.SpannableStringBuilder;
-import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
@@ -11,6 +10,7 @@ import android.widget.TextView;
 import com.facebook.csslayout.CSSLayoutContext;
 import com.facebook.csslayout.CSSMeasureMode;
 import com.facebook.csslayout.CSSNode;
+import com.facebook.csslayout.CSSNodeAPI;
 import com.facebook.csslayout.MeasureOutput;
 
 public class VNodeText extends VNodeViewBased implements CSSNode.MeasureFunction, IHasTextStyle, IVNodeTextLike {
@@ -94,7 +94,7 @@ public class VNodeText extends VNodeViewBased implements CSSNode.MeasureFunction
     }
 
     @Override
-    public void measure(CSSNode node, float width, CSSMeasureMode widthMode, float height, CSSMeasureMode heightMode, MeasureOutput measureOutput) {
+    public void measure(CSSNodeAPI node, float width, CSSMeasureMode widthMode, float height, CSSMeasureMode heightMode, MeasureOutput measureOutput) {
         view.measure(FloatUtils.toAndroid(width, widthMode), FloatUtils.toAndroid(height, heightMode));
         measureOutput.width = textView.getMeasuredWidth();
         measureOutput.height = textView.getMeasuredHeight();

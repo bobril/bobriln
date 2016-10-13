@@ -1,7 +1,6 @@
 package com.bobril.bobriln;
 
 import android.app.Activity;
-import android.content.Context;
 import android.content.res.Configuration;
 import android.graphics.Point;
 import android.os.Bundle;
@@ -9,7 +8,6 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Display;
 import android.view.MotionEvent;
-import android.view.View;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;

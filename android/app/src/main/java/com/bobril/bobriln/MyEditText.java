@@ -1,7 +1,6 @@
 package com.bobril.bobriln;
 
 import android.content.Context;
-import android.util.Log;
 import android.widget.EditText;
 
 import java.util.HashMap;

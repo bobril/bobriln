@@ -8,11 +8,13 @@ import android.graphics.RectF;
 
 import com.facebook.csslayout.CSSConstants;
 import com.facebook.csslayout.CSSDirection;
+import com.facebook.csslayout.CSSOverflow;
 import com.facebook.csslayout.Spacing;
 
 public class ViewDecoration {
     VNodeViewBased owner;
     int backgroundColor;
+    CSSOverflow overflow = CSSOverflow.VISIBLE;
     Paint backgroundPaint;
     IntSpacing borderColor;
     Paint leftBorderPaint;
@@ -33,7 +35,7 @@ public class ViewDecoration {
         this.owner = owner;
     }
 
-    public void onDraw(Canvas canvas) {
+    public void onBeforeDraw(Canvas canvas) {
         VDom vdom = owner.vdom;
         PublicCSSNode css = owner.css;
         backgroundPaint = vdom.color2Paint(backgroundColor);
@@ -121,160 +123,179 @@ public class ViewDecoration {
             addCornerInside90(width, 0, rightBorderWidth, topBorderWidth, borderRadiusTopRightX, borderRadiusTopRightY, -1, 1, 0, path, tempRect, false);
             path.close();
             canvas.drawPath(path, leftBorderP);
-            return;
+        } else {
+            if (leftBorderP != null && leftBorderP == topBorderP && topBorderP == rightBorderP) {
+                path.rewind();
+                addCornerOutside45(0, height, borderRadiusBottomLeftX, borderRadiusBottomLeftY, 1, -1, 135, path, tempRect, true);
+                addCornerOutside90(0, 0, borderRadiusTopLeftX, borderRadiusTopLeftY, 1, 1, 180, path, tempRect, false);
+                addCornerOutside90(width, 0, borderRadiusTopRightX, borderRadiusTopRightY, -1, 1, 270, path, tempRect, false);
+                addCornerOutside45(width, height, borderRadiusBottomRightX, borderRadiusBottomRightY, -1, -1, 0, path, tempRect, false);
+                addCornerInside45(width, height, rightBorderWidth, bottomBorderWidth, borderRadiusBottomRightX, borderRadiusBottomRightY, -1, -1, 45, path, tempRect, false);
+                addCornerInside90(width, 0, rightBorderWidth, topBorderWidth, borderRadiusTopRightX, borderRadiusTopRightY, -1, 1, 0, path, tempRect, false);
+                addCornerInside90(0, 0, leftBorderWidth, topBorderWidth, borderRadiusTopLeftX, borderRadiusTopLeftY, 1, 1, 270, path, tempRect, false);
+                addCornerInside45(0, height, leftBorderWidth, bottomBorderWidth, borderRadiusBottomLeftX, borderRadiusBottomLeftY, 1, -1, 180, path, tempRect, false);
+                path.close();
+                canvas.drawPath(path, leftBorderP);
+                leftBorderP = null;
+                topBorderP = null;
+                rightBorderP = null;
+            }
+            if (topBorderP != null && topBorderP == rightBorderP && rightBorderP == bottomBorderP) {
+                path.rewind();
+                addCornerOutside45(0, 0, borderRadiusTopLeftX, borderRadiusTopLeftY, 1, 1, 225, path, tempRect, true);
+                addCornerOutside90(width, 0, borderRadiusTopRightX, borderRadiusTopRightY, -1, 1, 270, path, tempRect, false);
+                addCornerOutside90(width, height, borderRadiusBottomRightX, borderRadiusBottomRightY, -1, -1, 0, path, tempRect, false);
+                addCornerOutside45(0, height, borderRadiusBottomLeftX, borderRadiusBottomLeftY, 1, -1, 90, path, tempRect, false);
+                addCornerInside45(0, height, leftBorderWidth, bottomBorderWidth, borderRadiusBottomLeftX, borderRadiusBottomLeftY, 1, -1, 135, path, tempRect, false);
+                addCornerInside90(width, height, rightBorderWidth, bottomBorderWidth, borderRadiusBottomRightX, borderRadiusBottomRightY, -1, -1, 90, path, tempRect, false);
+                addCornerInside90(width, 0, rightBorderWidth, topBorderWidth, borderRadiusTopRightX, borderRadiusTopRightY, -1, 1, 0, path, tempRect, false);
+                addCornerInside45(0, 0, leftBorderWidth, topBorderWidth, borderRadiusTopLeftX, borderRadiusTopLeftY, 1, 1, 270, path, tempRect, false);
+                path.close();
+                canvas.drawPath(path, topBorderP);
+                topBorderP = null;
+                rightBorderP = null;
+                bottomBorderP = null;
+            }
+            if (rightBorderP != null && rightBorderP == bottomBorderP && bottomBorderP == leftBorderP) {
+                path.rewind();
+                addCornerOutside45(width, 0, borderRadiusTopRightX, borderRadiusTopRightY, -1, 1, -45, path, tempRect, true);
+                addCornerOutside90(width, height, borderRadiusBottomRightX, borderRadiusBottomRightY, -1, -1, 0, path, tempRect, false);
+                addCornerOutside90(0, height, borderRadiusBottomLeftX, borderRadiusBottomLeftY, 1, -1, 90, path, tempRect, false);
+                addCornerOutside45(0, 0, borderRadiusTopLeftX, borderRadiusTopLeftY, 1, 1, 180, path, tempRect, false);
+                addCornerInside45(0, 0, leftBorderWidth, topBorderWidth, borderRadiusTopLeftX, borderRadiusTopLeftY, 1, 1, 225, path, tempRect, false);
+                addCornerInside90(0, height, leftBorderWidth, bottomBorderWidth, borderRadiusBottomLeftX, borderRadiusBottomLeftY, 1, -1, 180, path, tempRect, false);
+                addCornerInside90(width, height, rightBorderWidth, bottomBorderWidth, borderRadiusBottomRightX, borderRadiusBottomRightY, -1, -1, 90, path, tempRect, false);
+                addCornerInside45(width, 0, rightBorderWidth, topBorderWidth, borderRadiusTopRightX, borderRadiusTopRightY, -1, 1, 0, path, tempRect, false);
+                path.close();
+                canvas.drawPath(path, rightBorderP);
+                rightBorderP = null;
+                bottomBorderP = null;
+                leftBorderP = null;
+            }
+            if (bottomBorderP != null && bottomBorderP == leftBorderP && leftBorderP == topBorderP) {
+                path.rewind();
+                addCornerOutside45(width, height, borderRadiusBottomRightX, borderRadiusBottomRightY, -1, -1, 45, path, tempRect, true);
+                addCornerOutside90(0, height, borderRadiusBottomLeftX, borderRadiusBottomLeftY, 1, -1, 90, path, tempRect, false);
+                addCornerOutside90(0, 0, borderRadiusTopLeftX, borderRadiusTopLeftY, 1, 1, 180, path, tempRect, false);
+                addCornerOutside45(width, 0, borderRadiusTopRightX, borderRadiusTopRightY, -1, 1, 270, path, tempRect, false);
+                addCornerInside45(width, 0, rightBorderWidth, topBorderWidth, borderRadiusTopRightX, borderRadiusTopRightY, -1, 1, -45, path, tempRect, false);
+                addCornerInside90(0, 0, leftBorderWidth, topBorderWidth, borderRadiusTopLeftX, borderRadiusTopLeftY, 1, 1, 270, path, tempRect, false);
+                addCornerInside90(0, height, leftBorderWidth, bottomBorderWidth, borderRadiusBottomLeftX, borderRadiusBottomLeftY, 1, -1, 180, path, tempRect, false);
+                addCornerInside45(width, height, rightBorderWidth, bottomBorderWidth, borderRadiusBottomRightX, borderRadiusBottomRightY, -1, -1, 90, path, tempRect, false);
+                path.close();
+                canvas.drawPath(path, bottomBorderP);
+                bottomBorderP = null;
+                leftBorderP = null;
+                topBorderP = null;
+            }
+            if (leftBorderP != null && leftBorderP == topBorderP) {
+                path.rewind();
+                addCornerOutside45(0, height, borderRadiusBottomLeftX, borderRadiusBottomLeftY, 1, -1, 135, path, tempRect, true);
+                addCornerOutside90(0, 0, borderRadiusTopLeftX, borderRadiusTopLeftY, 1, 1, 180, path, tempRect, false);
+                addCornerOutside45(width, 0, borderRadiusTopRightX, borderRadiusTopRightY, -1, 1, 270, path, tempRect, false);
+                addCornerInside45(width, 0, rightBorderWidth, topBorderWidth, borderRadiusTopRightX, borderRadiusTopRightY, -1, 1, -45, path, tempRect, false);
+                addCornerInside90(0, 0, leftBorderWidth, topBorderWidth, borderRadiusTopLeftX, borderRadiusTopLeftY, 1, 1, 270, path, tempRect, false);
+                addCornerInside45(0, height, leftBorderWidth, bottomBorderWidth, borderRadiusBottomLeftX, borderRadiusBottomLeftY, 1, -1, 180, path, tempRect, false);
+                path.close();
+                canvas.drawPath(path, leftBorderP);
+                leftBorderP = null;
+                topBorderP = null;
+            }
+            if (topBorderP != null && topBorderP == rightBorderP) {
+                path.rewind();
+                addCornerOutside45(0, 0, borderRadiusTopLeftX, borderRadiusTopLeftY, 1, 1, 225, path, tempRect, true);
+                addCornerOutside90(width, 0, borderRadiusTopRightX, borderRadiusTopRightY, -1, 1, 270, path, tempRect, false);
+                addCornerOutside45(width, height, borderRadiusBottomRightX, borderRadiusBottomRightY, -1, -1, 0, path, tempRect, false);
+                addCornerInside45(width, height, rightBorderWidth, bottomBorderWidth, borderRadiusBottomRightX, borderRadiusBottomRightY, -1, -1, 45, path, tempRect, false);
+                addCornerInside90(width, 0, rightBorderWidth, topBorderWidth, borderRadiusTopRightX, borderRadiusTopRightY, -1, 1, 0, path, tempRect, false);
+                addCornerInside45(0, 0, leftBorderWidth, topBorderWidth, borderRadiusTopLeftX, borderRadiusTopLeftY, 1, 1, 270, path, tempRect, false);
+                path.close();
+                canvas.drawPath(path, topBorderP);
+                topBorderP = null;
+                rightBorderP = null;
+            }
+            if (rightBorderP != null && rightBorderP == bottomBorderP) {
+                path.rewind();
+                addCornerOutside45(width, 0, borderRadiusTopRightX, borderRadiusTopRightY, -1, 1, -45, path, tempRect, true);
+                addCornerOutside90(width, height, borderRadiusBottomRightX, borderRadiusBottomRightY, -1, -1, 0, path, tempRect, false);
+                addCornerOutside45(0, height, borderRadiusBottomLeftX, borderRadiusBottomLeftY, 1, -1, 90, path, tempRect, false);
+                addCornerInside45(0, height, leftBorderWidth, bottomBorderWidth, borderRadiusBottomLeftX, borderRadiusBottomLeftY, 1, -1, 135, path, tempRect, false);
+                addCornerInside90(width, height, rightBorderWidth, bottomBorderWidth, borderRadiusBottomRightX, borderRadiusBottomRightY, -1, -1, 90, path, tempRect, false);
+                addCornerInside45(width, 0, rightBorderWidth, topBorderWidth, borderRadiusTopRightX, borderRadiusTopRightY, -1, 1, 0, path, tempRect, false);
+                path.close();
+                canvas.drawPath(path, rightBorderP);
+                rightBorderP = null;
+                bottomBorderP = null;
+            }
+            if (bottomBorderP != null && bottomBorderP == leftBorderP) {
+                path.rewind();
+                addCornerOutside45(width, height, borderRadiusBottomRightX, borderRadiusBottomRightY, -1, -1, 45, path, tempRect, true);
+                addCornerOutside90(0, height, borderRadiusBottomLeftX, borderRadiusBottomLeftY, 1, -1, 90, path, tempRect, false);
+                addCornerOutside45(0, 0, borderRadiusTopLeftX, borderRadiusTopLeftY, 1, 1, 180, path, tempRect, false);
+                addCornerInside45(0, 0, leftBorderWidth, topBorderWidth, borderRadiusTopLeftX, borderRadiusTopLeftY, 1, 1, 225, path, tempRect, false);
+                addCornerInside90(0, height, leftBorderWidth, bottomBorderWidth, borderRadiusBottomLeftX, borderRadiusBottomLeftY, 1, -1, 180, path, tempRect, false);
+                addCornerInside45(width, height, rightBorderWidth, bottomBorderWidth, borderRadiusBottomRightX, borderRadiusBottomRightY, -1, -1, 90, path, tempRect, false);
+                path.close();
+                canvas.drawPath(path, bottomBorderP);
+                bottomBorderP = null;
+                leftBorderP = null;
+            }
+            if (topBorderP != null) {
+                path.rewind();
+                addCornerOutside45(0, 0, borderRadiusTopLeftX, borderRadiusTopLeftY, 1, 1, 225, path, tempRect, true);
+                addCornerOutside45(width, 0, borderRadiusTopRightX, borderRadiusTopRightY, -1, 1, 270, path, tempRect, false);
+                addCornerInside45(width, 0, rightBorderWidth, topBorderWidth, borderRadiusTopRightX, borderRadiusTopRightY, -1, 1, -45, path, tempRect, false);
+                addCornerInside45(0, 0, leftBorderWidth, topBorderWidth, borderRadiusTopLeftX, borderRadiusTopLeftY, 1, 1, 270, path, tempRect, false);
+                path.close();
+                canvas.drawPath(path, topBorderP);
+            }
+            if (rightBorderP != null) {
+                path.rewind();
+                addCornerOutside45(width, 0, borderRadiusTopRightX, borderRadiusTopRightY, -1, 1, -45, path, tempRect, true);
+                addCornerOutside45(width, height, borderRadiusBottomRightX, borderRadiusBottomRightY, -1, -1, 0, path, tempRect, false);
+                addCornerInside45(width, height, rightBorderWidth, bottomBorderWidth, borderRadiusBottomRightX, borderRadiusBottomRightY, -1, -1, 45, path, tempRect, false);
+                addCornerInside45(width, 0, rightBorderWidth, topBorderWidth, borderRadiusTopRightX, borderRadiusTopRightY, -1, 1, 0, path, tempRect, false);
+                path.close();
+                canvas.drawPath(path, rightBorderP);
+            }
+            if (bottomBorderP != null) {
+                path.rewind();
+                addCornerOutside45(width, height, borderRadiusBottomRightX, borderRadiusBottomRightY, -1, -1, 45, path, tempRect, true);
+                addCornerOutside45(0, height, borderRadiusBottomLeftX, borderRadiusBottomLeftY, 1, -1, 90, path, tempRect, false);
+                addCornerInside45(0, height, leftBorderWidth, bottomBorderWidth, borderRadiusBottomLeftX, borderRadiusBottomLeftY, 1, -1, 135, path, tempRect, false);
+                addCornerInside45(width, height, rightBorderWidth, bottomBorderWidth, borderRadiusBottomRightX, borderRadiusBottomRightY, -1, -1, 90, path, tempRect, false);
+                path.close();
+                canvas.drawPath(path, bottomBorderP);
+            }
+            if (leftBorderP != null) {
+                path.rewind();
+                addCornerOutside45(0, height, borderRadiusBottomLeftX, borderRadiusBottomLeftY, 1, -1, 135, path, tempRect, true);
+                addCornerOutside45(0, 0, borderRadiusTopLeftX, borderRadiusTopLeftY, 1, 1, 180, path, tempRect, false);
+                addCornerInside45(0, 0, leftBorderWidth, topBorderWidth, borderRadiusTopLeftX, borderRadiusTopLeftY, 1, 1, 225, path, tempRect, false);
+                addCornerInside45(0, height, leftBorderWidth, bottomBorderWidth, borderRadiusBottomLeftX, borderRadiusBottomLeftY, 1, -1, 180, path, tempRect, false);
+                path.close();
+                canvas.drawPath(path, leftBorderP);
+            }
         }
-        if (leftBorderP != null && leftBorderP == topBorderP && topBorderP == rightBorderP) {
-            path.rewind();
-            addCornerOutside45(0, height, borderRadiusBottomLeftX, borderRadiusBottomLeftY, 1, -1, 135, path, tempRect, true);
-            addCornerOutside90(0, 0, borderRadiusTopLeftX, borderRadiusTopLeftY, 1, 1, 180, path, tempRect, false);
-            addCornerOutside90(width, 0, borderRadiusTopRightX, borderRadiusTopRightY, -1, 1, 270, path, tempRect, false);
-            addCornerOutside45(width, height, borderRadiusBottomRightX, borderRadiusBottomRightY, -1, -1, 0, path, tempRect, false);
-            addCornerInside45(width, height, rightBorderWidth, bottomBorderWidth, borderRadiusBottomRightX, borderRadiusBottomRightY, -1, -1, 45, path, tempRect, false);
-            addCornerInside90(width, 0, rightBorderWidth, topBorderWidth, borderRadiusTopRightX, borderRadiusTopRightY, -1, 1, 0, path, tempRect, false);
-            addCornerInside90(0, 0, leftBorderWidth, topBorderWidth, borderRadiusTopLeftX, borderRadiusTopLeftY, 1, 1, 270, path, tempRect, false);
-            addCornerInside45(0, height, leftBorderWidth, bottomBorderWidth, borderRadiusBottomLeftX, borderRadiusBottomLeftY, 1, -1, 180, path, tempRect, false);
-            path.close();
-            canvas.drawPath(path, leftBorderP);
-            leftBorderP = null;
-            topBorderP = null;
-            rightBorderP = null;
+        if (overflow != CSSOverflow.VISIBLE) {
+            canvas.save();
+            if (borderRadiusTopLeftX + borderRadiusTopLeftY + borderRadiusTopRightX + borderRadiusTopRightY + borderRadiusBottomRightX + borderRadiusBottomRightY + borderRadiusBottomLeftX + borderRadiusBottomLeftY == 0)
+                canvas.clipRect(leftBorderWidth * 0.5f, topBorderWidth * 0.5f, width - rightBorderWidth * 0.5f, height - bottomBorderWidth * 0.5f);
+            else {
+                path.rewind();
+                addCorner(0, 0, leftBorderWidth, topBorderWidth, borderRadiusTopLeftX, borderRadiusTopLeftY, 1, 1, 180, path, tempRect);
+                addCorner(width, 0, rightBorderWidth, topBorderWidth, borderRadiusTopRightX, borderRadiusTopRightY, -1, 1, 270, path, tempRect);
+                addCorner(width, height, rightBorderWidth, bottomBorderWidth, borderRadiusBottomRightX, borderRadiusBottomRightY, -1, -1, 0, path, tempRect);
+                addCorner(0, height, leftBorderWidth, bottomBorderWidth, borderRadiusBottomLeftX, borderRadiusBottomLeftY, 1, -1, 90, path, tempRect);
+                path.close();
+                canvas.clipPath(path);
+            }
         }
-        if (topBorderP != null && topBorderP == rightBorderP && rightBorderP == bottomBorderP) {
-            path.rewind();
-            addCornerOutside45(0, 0, borderRadiusTopLeftX, borderRadiusTopLeftY, 1, 1, 225, path, tempRect, true);
-            addCornerOutside90(width, 0, borderRadiusTopRightX, borderRadiusTopRightY, -1, 1, 270, path, tempRect, false);
-            addCornerOutside90(width, height, borderRadiusBottomRightX, borderRadiusBottomRightY, -1, -1, 0, path, tempRect, false);
-            addCornerOutside45(0, height, borderRadiusBottomLeftX, borderRadiusBottomLeftY, 1, -1, 90, path, tempRect, false);
-            addCornerInside45(0, height, leftBorderWidth, bottomBorderWidth, borderRadiusBottomLeftX, borderRadiusBottomLeftY, 1, -1, 135, path, tempRect, false);
-            addCornerInside90(width, height, rightBorderWidth, bottomBorderWidth, borderRadiusBottomRightX, borderRadiusBottomRightY, -1, -1, 90, path, tempRect, false);
-            addCornerInside90(width, 0, rightBorderWidth, topBorderWidth, borderRadiusTopRightX, borderRadiusTopRightY, -1, 1, 0, path, tempRect, false);
-            addCornerInside45(0, 0, leftBorderWidth, topBorderWidth, borderRadiusTopLeftX, borderRadiusTopLeftY, 1, 1, 270, path, tempRect, false);
-            path.close();
-            canvas.drawPath(path, topBorderP);
-            topBorderP = null;
-            rightBorderP = null;
-            bottomBorderP = null;
-        }
-        if (rightBorderP != null && rightBorderP == bottomBorderP && bottomBorderP == leftBorderP) {
-            path.rewind();
-            addCornerOutside45(width, 0, borderRadiusTopRightX, borderRadiusTopRightY, -1, 1, -45, path, tempRect, true);
-            addCornerOutside90(width, height, borderRadiusBottomRightX, borderRadiusBottomRightY, -1, -1, 0, path, tempRect, false);
-            addCornerOutside90(0, height, borderRadiusBottomLeftX, borderRadiusBottomLeftY, 1, -1, 90, path, tempRect, false);
-            addCornerOutside45(0, 0, borderRadiusTopLeftX, borderRadiusTopLeftY, 1, 1, 180, path, tempRect, false);
-            addCornerInside45(0, 0, leftBorderWidth, topBorderWidth, borderRadiusTopLeftX, borderRadiusTopLeftY, 1, 1, 225, path, tempRect, false);
-            addCornerInside90(0, height, leftBorderWidth, bottomBorderWidth, borderRadiusBottomLeftX, borderRadiusBottomLeftY, 1, -1, 180, path, tempRect, false);
-            addCornerInside90(width, height, rightBorderWidth, bottomBorderWidth, borderRadiusBottomRightX, borderRadiusBottomRightY, -1, -1, 90, path, tempRect, false);
-            addCornerInside45(width, 0, rightBorderWidth, topBorderWidth, borderRadiusTopRightX, borderRadiusTopRightY, -1, 1, 0, path, tempRect, false);
-            path.close();
-            canvas.drawPath(path, rightBorderP);
-            rightBorderP = null;
-            bottomBorderP = null;
-            leftBorderP = null;
-        }
-        if (bottomBorderP != null && bottomBorderP == leftBorderP && leftBorderP == topBorderP) {
-            path.rewind();
-            addCornerOutside45(width, height, borderRadiusBottomRightX, borderRadiusBottomRightY, -1, -1, 45, path, tempRect, true);
-            addCornerOutside90(0, height, borderRadiusBottomLeftX, borderRadiusBottomLeftY, 1, -1, 90, path, tempRect, false);
-            addCornerOutside90(0, 0, borderRadiusTopLeftX, borderRadiusTopLeftY, 1, 1, 180, path, tempRect, false);
-            addCornerOutside45(width, 0, borderRadiusTopRightX, borderRadiusTopRightY, -1, 1, 270, path, tempRect, false);
-            addCornerInside45(width, 0, rightBorderWidth, topBorderWidth, borderRadiusTopRightX, borderRadiusTopRightY, -1, 1, -45, path, tempRect, false);
-            addCornerInside90(0, 0, leftBorderWidth, topBorderWidth, borderRadiusTopLeftX, borderRadiusTopLeftY, 1, 1, 270, path, tempRect, false);
-            addCornerInside90(0, height, leftBorderWidth, bottomBorderWidth, borderRadiusBottomLeftX, borderRadiusBottomLeftY, 1, -1, 180, path, tempRect, false);
-            addCornerInside45(width, height, rightBorderWidth, bottomBorderWidth, borderRadiusBottomRightX, borderRadiusBottomRightY, -1, -1, 90, path, tempRect, false);
-            path.close();
-            canvas.drawPath(path, bottomBorderP);
-            bottomBorderP = null;
-            leftBorderP = null;
-            topBorderP = null;
-        }
-        if (leftBorderP != null && leftBorderP == topBorderP) {
-            path.rewind();
-            addCornerOutside45(0, height, borderRadiusBottomLeftX, borderRadiusBottomLeftY, 1, -1, 135, path, tempRect, true);
-            addCornerOutside90(0, 0, borderRadiusTopLeftX, borderRadiusTopLeftY, 1, 1, 180, path, tempRect, false);
-            addCornerOutside45(width, 0, borderRadiusTopRightX, borderRadiusTopRightY, -1, 1, 270, path, tempRect, false);
-            addCornerInside45(width, 0, rightBorderWidth, topBorderWidth, borderRadiusTopRightX, borderRadiusTopRightY, -1, 1, -45, path, tempRect, false);
-            addCornerInside90(0, 0, leftBorderWidth, topBorderWidth, borderRadiusTopLeftX, borderRadiusTopLeftY, 1, 1, 270, path, tempRect, false);
-            addCornerInside45(0, height, leftBorderWidth, bottomBorderWidth, borderRadiusBottomLeftX, borderRadiusBottomLeftY, 1, -1, 180, path, tempRect, false);
-            path.close();
-            canvas.drawPath(path, leftBorderP);
-            leftBorderP = null;
-            topBorderP = null;
-        }
-        if (topBorderP != null && topBorderP == rightBorderP) {
-            path.rewind();
-            addCornerOutside45(0, 0, borderRadiusTopLeftX, borderRadiusTopLeftY, 1, 1, 225, path, tempRect, true);
-            addCornerOutside90(width, 0, borderRadiusTopRightX, borderRadiusTopRightY, -1, 1, 270, path, tempRect, false);
-            addCornerOutside45(width, height, borderRadiusBottomRightX, borderRadiusBottomRightY, -1, -1, 0, path, tempRect, false);
-            addCornerInside45(width, height, rightBorderWidth, bottomBorderWidth, borderRadiusBottomRightX, borderRadiusBottomRightY, -1, -1, 45, path, tempRect, false);
-            addCornerInside90(width, 0, rightBorderWidth, topBorderWidth, borderRadiusTopRightX, borderRadiusTopRightY, -1, 1, 0, path, tempRect, false);
-            addCornerInside45(0, 0, leftBorderWidth, topBorderWidth, borderRadiusTopLeftX, borderRadiusTopLeftY, 1, 1, 270, path, tempRect, false);
-            path.close();
-            canvas.drawPath(path, topBorderP);
-            topBorderP = null;
-            rightBorderP = null;
-        }
-        if (rightBorderP != null && rightBorderP == bottomBorderP) {
-            path.rewind();
-            addCornerOutside45(width, 0, borderRadiusTopRightX, borderRadiusTopRightY, -1, 1, -45, path, tempRect, true);
-            addCornerOutside90(width, height, borderRadiusBottomRightX, borderRadiusBottomRightY, -1, -1, 0, path, tempRect, false);
-            addCornerOutside45(0, height, borderRadiusBottomLeftX, borderRadiusBottomLeftY, 1, -1, 90, path, tempRect, false);
-            addCornerInside45(0, height, leftBorderWidth, bottomBorderWidth, borderRadiusBottomLeftX, borderRadiusBottomLeftY, 1, -1, 135, path, tempRect, false);
-            addCornerInside90(width, height, rightBorderWidth, bottomBorderWidth, borderRadiusBottomRightX, borderRadiusBottomRightY, -1, -1, 90, path, tempRect, false);
-            addCornerInside45(width, 0, rightBorderWidth, topBorderWidth, borderRadiusTopRightX, borderRadiusTopRightY, -1, 1, 0, path, tempRect, false);
-            path.close();
-            canvas.drawPath(path, rightBorderP);
-            rightBorderP = null;
-            bottomBorderP = null;
-        }
-        if (bottomBorderP != null && bottomBorderP == leftBorderP) {
-            path.rewind();
-            addCornerOutside45(width, height, borderRadiusBottomRightX, borderRadiusBottomRightY, -1, -1, 45, path, tempRect, true);
-            addCornerOutside90(0, height, borderRadiusBottomLeftX, borderRadiusBottomLeftY, 1, -1, 90, path, tempRect, false);
-            addCornerOutside45(0, 0, borderRadiusTopLeftX, borderRadiusTopLeftY, 1, 1, 180, path, tempRect, false);
-            addCornerInside45(0, 0, leftBorderWidth, topBorderWidth, borderRadiusTopLeftX, borderRadiusTopLeftY, 1, 1, 225, path, tempRect, false);
-            addCornerInside90(0, height, leftBorderWidth, bottomBorderWidth, borderRadiusBottomLeftX, borderRadiusBottomLeftY, 1, -1, 180, path, tempRect, false);
-            addCornerInside45(width, height, rightBorderWidth, bottomBorderWidth, borderRadiusBottomRightX, borderRadiusBottomRightY, -1, -1, 90, path, tempRect, false);
-            path.close();
-            canvas.drawPath(path, bottomBorderP);
-            bottomBorderP = null;
-            leftBorderP = null;
-        }
-        if (topBorderP != null) {
-            path.rewind();
-            addCornerOutside45(0, 0, borderRadiusTopLeftX, borderRadiusTopLeftY, 1, 1, 225, path, tempRect, true);
-            addCornerOutside45(width, 0, borderRadiusTopRightX, borderRadiusTopRightY, -1, 1, 270, path, tempRect, false);
-            addCornerInside45(width, 0, rightBorderWidth, topBorderWidth, borderRadiusTopRightX, borderRadiusTopRightY, -1, 1, -45, path, tempRect, false);
-            addCornerInside45(0, 0, leftBorderWidth, topBorderWidth, borderRadiusTopLeftX, borderRadiusTopLeftY, 1, 1, 270, path, tempRect, false);
-            path.close();
-            canvas.drawPath(path, topBorderP);
-        }
-        if (rightBorderP != null) {
-            path.rewind();
-            addCornerOutside45(width, 0, borderRadiusTopRightX, borderRadiusTopRightY, -1, 1, -45, path, tempRect, true);
-            addCornerOutside45(width, height, borderRadiusBottomRightX, borderRadiusBottomRightY, -1, -1, 0, path, tempRect, false);
-            addCornerInside45(width, height, rightBorderWidth, bottomBorderWidth, borderRadiusBottomRightX, borderRadiusBottomRightY, -1, -1, 45, path, tempRect, false);
-            addCornerInside45(width, 0, rightBorderWidth, topBorderWidth, borderRadiusTopRightX, borderRadiusTopRightY, -1, 1, 0, path, tempRect, false);
-            path.close();
-            canvas.drawPath(path, rightBorderP);
-        }
-        if (bottomBorderP != null) {
-            path.rewind();
-            addCornerOutside45(width, height, borderRadiusBottomRightX, borderRadiusBottomRightY, -1, -1, 45, path, tempRect, true);
-            addCornerOutside45(0, height, borderRadiusBottomLeftX, borderRadiusBottomLeftY, 1, -1, 90, path, tempRect, false);
-            addCornerInside45(0, height, leftBorderWidth, bottomBorderWidth, borderRadiusBottomLeftX, borderRadiusBottomLeftY, 1, -1, 135, path, tempRect, false);
-            addCornerInside45(width, height, rightBorderWidth, bottomBorderWidth, borderRadiusBottomRightX, borderRadiusBottomRightY, -1, -1, 90, path, tempRect, false);
-            path.close();
-            canvas.drawPath(path, bottomBorderP);
-        }
-        if (leftBorderP != null) {
-            path.rewind();
-            addCornerOutside45(0, height, borderRadiusBottomLeftX, borderRadiusBottomLeftY, 1, -1, 135, path, tempRect, true);
-            addCornerOutside45(0, 0, borderRadiusTopLeftX, borderRadiusTopLeftY, 1, 1, 180, path, tempRect, false);
-            addCornerInside45(0, 0, leftBorderWidth, topBorderWidth, borderRadiusTopLeftX, borderRadiusTopLeftY, 1, 1, 225, path, tempRect, false);
-            addCornerInside45(0, height, leftBorderWidth, bottomBorderWidth, borderRadiusBottomLeftX, borderRadiusBottomLeftY, 1, -1, 180, path, tempRect, false);
-            path.close();
-            canvas.drawPath(path, leftBorderP);
-        }
+    }
+
+    public void onAfterDraw(Canvas canvas) {
+        if (overflow != CSSOverflow.VISIBLE)
+            canvas.restore();
     }
 
     private void addCornerInside90(float x, float y, float borderWidthX, float borderWidthY, float radiusX, float radiusY, float whichX, float whichY, int angle, Path path, RectF tempRect, boolean forceMove) {
@@ -590,5 +611,9 @@ public class ViewDecoration {
         float y = v[1];
         userBorderRadiusBottomRightX = x;
         userBorderRadiusBottomRightY = y;
+    }
+
+    public void setOverflow(CSSOverflow overflow) {
+        this.overflow = overflow;
     }
 }

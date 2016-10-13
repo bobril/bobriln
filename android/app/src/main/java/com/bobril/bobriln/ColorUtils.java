@@ -1,7 +1,6 @@
 package com.bobril.bobriln;
 
 import android.graphics.Color;
-import android.util.Log;
 
 import java.util.HashMap;
 import java.util.Map;

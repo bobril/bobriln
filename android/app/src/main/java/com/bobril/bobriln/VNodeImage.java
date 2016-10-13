@@ -1,10 +1,7 @@
 package com.bobril.bobriln;
 
 import android.content.Context;
-import android.util.Log;
 import android.view.View;
-
-import com.facebook.csslayout.FloatUtil;
 
 import java.util.List;
 

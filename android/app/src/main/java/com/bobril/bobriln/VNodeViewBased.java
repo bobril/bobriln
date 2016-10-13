@@ -2,7 +2,6 @@ package com.bobril.bobriln;
 
 import android.content.Context;
 import android.view.View;
-import android.view.ViewDebug;
 import android.view.ViewGroup;
 import android.widget.AbsoluteLayout;
 
@@ -12,6 +11,7 @@ import com.facebook.csslayout.CSSDirection;
 import com.facebook.csslayout.CSSFlexDirection;
 import com.facebook.csslayout.CSSJustify;
 import com.facebook.csslayout.CSSLayoutContext;
+import com.facebook.csslayout.CSSOverflow;
 import com.facebook.csslayout.CSSPositionType;
 import com.facebook.csslayout.CSSWrap;
 import com.facebook.csslayout.Spacing;
@@ -168,6 +168,12 @@ public abstract class VNodeViewBased extends VNode {
             case "position":
                 css.setPositionType(toCSSPositionType(styleValue));
                 break;
+            case "overflow":
+                CSSOverflow overflow = toCSSOverflow(styleValue);
+                css.setOverflow(overflow);
+                if (decoration == null && overflow == CSSOverflow.VISIBLE) break;
+                lazyDecoration().setOverflow(overflow);
+                break;
             case "width":
                 css.setStyleWidth(toCSSDimension(styleValue));
                 break;
@@ -175,16 +181,16 @@ public abstract class VNodeViewBased extends VNode {
                 css.setStyleHeight(toCSSDimension(styleValue));
                 break;
             case "top":
-                css.setPositionTop(toCSSDimension(styleValue));
+                css.setPosition(Spacing.TOP, toCSSDimension(styleValue));
                 break;
             case "left":
-                css.setPositionLeft(toCSSDimension(styleValue));
+                css.setPosition(Spacing.LEFT, toCSSDimension(styleValue));
                 break;
             case "right":
-                css.setPositionRight(toCSSDimension(styleValue));
+                css.setPosition(Spacing.RIGHT, toCSSDimension(styleValue));
                 break;
             case "bottom":
-                css.setPositionBottom(toCSSDimension(styleValue));
+                css.setPosition(Spacing.BOTTOM, toCSSDimension(styleValue));
                 break;
             case "minWidth":
                 css.setStyleMinWidth(toCSSDimension(styleValue));
@@ -201,6 +207,14 @@ public abstract class VNodeViewBased extends VNode {
             case "flex":
                 css.setFlex(toFlex(styleValue));
                 break;
+            case "flexGrow":
+                css.setFlexGrow(toFlex(styleValue));
+                break;
+            case "flexShrink":
+                css.setFlexShrink(toFlex(styleValue));
+                break;
+            case "flexBasis":
+                css.setFlexBasis(toFlexBasis(styleValue));
             case "flexDirection":
                 css.setFlexDirection(toFlexDirection(styleValue));
                 break;
@@ -209,6 +223,9 @@ public abstract class VNodeViewBased extends VNode {
                 break;
             case "alignSelf":
                 css.setAlignSelf(toCSSAlign(styleValue, CSSAlign.FLEX_START));
+                break;
+            case "alignContent":
+                css.setAlignContent(toCSSAlign(styleValue, CSSAlign.FLEX_START));
                 break;
             case "justifyContent":
                 css.setJustifyContent(toCSSJustify(styleValue));
@@ -303,6 +320,23 @@ public abstract class VNodeViewBased extends VNode {
         }
     }
 
+    private CSSOverflow toCSSOverflow(Object value) {
+        if (value == null) return CSSOverflow.VISIBLE;
+        if (value.equals("hidden")) return CSSOverflow.HIDDEN;
+        if (value.equals("scroll")) return CSSOverflow.SCROLL;
+        if (value.equals("visible")) return CSSOverflow.VISIBLE;
+        return CSSOverflow.VISIBLE;
+    }
+
+    private float toFlexBasis(Object value) {
+        if (value == null) return CSSConstants.UNDEFINED;
+        if (value.equals("auto")) return CSSConstants.UNDEFINED;
+        if (value instanceof Double) return ((Double) value).floatValue();
+        if (value instanceof Integer) return ((Integer) value).floatValue();
+        if (value instanceof String) return Float.parseFloat((String) value);
+        return CSSConstants.UNDEFINED;
+    }
+
     private CSSPositionType toCSSPositionType(Object value) {
         if (value == null) return CSSPositionType.RELATIVE;
         if (value.equals("absolute")) return CSSPositionType.ABSOLUTE;
@@ -373,7 +407,8 @@ public abstract class VNodeViewBased extends VNode {
     @Override
     public void doLayout(CSSLayoutContext ctx) {
         VNode parent = getParent();
-        if (parent instanceof VNodeRoot || !(parent instanceof VNodeViewGroupBased)) css.calculateLayout(ctx);
+        if (parent instanceof VNodeRoot || !(parent instanceof VNodeViewGroupBased))
+            css.calculateLayout(ctx);
     }
 
     @Override

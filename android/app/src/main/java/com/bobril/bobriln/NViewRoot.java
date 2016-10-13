@@ -1,17 +1,7 @@
 package com.bobril.bobriln;
 
 import android.content.Context;
-import android.graphics.Point;
-import android.util.Log;
-import android.view.MotionEvent;
 import android.view.ViewGroup;
-
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Queue;
 
 public class NViewRoot extends ViewGroup {
     GlobalApp globalApp;
