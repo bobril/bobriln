@@ -83,13 +83,12 @@ export const Switch = b.createVirtualComponent<ISwitchData>({
     }
 });
 
-export interface ITextInputData {
+export interface ITextInputData extends b.IValueData<string> {
     children?: b.IBobrilChildren;
     style?: b.IBobrilStyles;
     selectionStart?: number;
     selectionEnd?: number;
     onDetailChange?: (start: number, before: number, text: string) => void;
-    onChange?: (value: string) => void;
     onSelectionChange?: (start: number, end: number) => void;
 }
 
@@ -129,17 +128,26 @@ export const TextInput = b.createVirtualComponent<ITextInputData>({
         if (d.selectionEnd !== undefined) {
             me.attrs!["selectionEnd"] = d.selectionEnd;
         }
-        me.children = d.children;
+        if (d.value) {
+            if (b.isFunction(d.value)) {
+                me.children = d.value();
+            } else {
+                me.children = d.value;
+            }
+        } else {
+            me.children = d.children;
+        }
     },
     onChange(ctx: ITextInputCtx, value: { start: number, before: number, text: string }) {
         const d = ctx.data;
         if (d.onDetailChange) {
             d.onDetailChange(value.start, value.before, value.text);
         }
-        if (d.onChange) {
+        if (d.onChange || b.isFunction(d.value)) {
             let currentText: string = extractText(ctx.me!);
             let newText = currentText.substr(0, value.start) + value.text + currentText.substr(value.start + value.before);
-            d.onChange(newText);
+            if (d.onChange) d.onChange(newText);
+            if (b.isFunction(d.value)) d.value(newText);
         }
     },
     onSelectionChange(ctx: ITextInputCtx, event: b.ISelectionChangeEvent) {

@@ -91,17 +91,30 @@ exports.TextInput = b.createVirtualComponent({
         if (d.selectionEnd !== undefined) {
             me.attrs["selectionEnd"] = d.selectionEnd;
         }
-        me.children = d.children;
+        if (d.value) {
+            if (b.isFunction(d.value)) {
+                me.children = d.value();
+            }
+            else {
+                me.children = d.value;
+            }
+        }
+        else {
+            me.children = d.children;
+        }
     },
     onChange: function (ctx, value) {
         var d = ctx.data;
         if (d.onDetailChange) {
             d.onDetailChange(value.start, value.before, value.text);
         }
-        if (d.onChange) {
+        if (d.onChange || b.isFunction(d.value)) {
             var currentText = extractText(ctx.me);
             var newText = currentText.substr(0, value.start) + value.text + currentText.substr(value.start + value.before);
-            d.onChange(newText);
+            if (d.onChange)
+                d.onChange(newText);
+            if (b.isFunction(d.value))
+                d.value(newText);
         }
     },
     onSelectionChange: function (ctx, event) {

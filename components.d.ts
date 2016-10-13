@@ -29,13 +29,12 @@ export interface ISwitchData extends b.IValueData<boolean> {
     style?: b.IBobrilStyles;
 }
 export declare const Switch: b.IComponentFactory<ISwitchData>;
-export interface ITextInputData {
+export interface ITextInputData extends b.IValueData<string> {
     children?: b.IBobrilChildren;
     style?: b.IBobrilStyles;
     selectionStart?: number;
     selectionEnd?: number;
     onDetailChange?: (start: number, before: number, text: string) => void;
-    onChange?: (value: string) => void;
     onSelectionChange?: (start: number, end: number) => void;
 }
 export declare const TextInput: b.IComponentFactory<ITextInputData>;
