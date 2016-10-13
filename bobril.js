@@ -1910,7 +1910,7 @@ function emitChange(data, value) {
 exports.emitChange = emitChange;
 // bobril-clouseau needs this
 if (!window.b)
-    window.b = { deref: deref, getRoots: getRoots, setInvalidate: setInvalidate, invalidateStyles: invalidateStyles, ignoreShouldChange: ignoreShouldChange, setAfterFrame: setAfterFrame, setBeforeFrame: setBeforeFrame };
+    window.b = { deref: deref, getRoots: getRoots, setInvalidate: setInvalidate, invalidateStyles: invalidateStyles, ignoreShouldChange: ignoreShouldChange, setAfterFrame: setAfterFrame, setBeforeInit: setBeforeInit, setBeforeFrame: setBeforeFrame };
 // TSX reactNamespace emulation
 // PureFuncs: createElement
 function createElement(name, props) {

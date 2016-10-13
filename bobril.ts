@@ -417,7 +417,7 @@ const nodeId2Node: (IBobrilCacheNode | undefined)[] = [undefined];
 
 function allocNodeId(): number {
     if (freeNodeIds.length > 0) {
-        return freeNodeIds.pop()!;
+        return freeNodeIds.pop() !;
     }
     return lastNodeId++;
 }
@@ -2288,7 +2288,7 @@ export function emitChange<T>(data: IValueData<T>, value: T) {
 }
 
 // bobril-clouseau needs this
-if (!(<any>window).b) (<any>window).b = { deref, getRoots, setInvalidate, invalidateStyles, ignoreShouldChange, setAfterFrame, setBeforeFrame };
+if (!(<any>window).b) (<any>window).b = { deref, getRoots, setInvalidate, invalidateStyles, ignoreShouldChange, setAfterFrame, setBeforeInit, setBeforeFrame };
 
 // TSX reactNamespace emulation
 // PureFuncs: createElement
