@@ -21,8 +21,11 @@ export interface IImageData {
     style?: b.IBobrilStyles;
     children?: b.IBobrilChildren;
 }
-export declare function Image(data?: IViewData, children?: b.IBobrilChildren): {
+export declare function Image(data: IImageData, children?: b.IBobrilChildren): {
     tag: string;
+    attrs: {
+        source: string | (string | number)[];
+    };
     children: b.IBobrilChildren;
 };
 export interface ISwitchData extends b.IValueData<boolean> {
@@ -38,3 +41,9 @@ export interface ITextInputData extends b.IValueData<string> {
     onSelectionChange?: (start: number, end: number) => void;
 }
 export declare const TextInput: b.IComponentFactory<ITextInputData>;
+export interface IScrollViewData {
+    horizontal?: boolean;
+    style?: b.IBobrilStyles;
+    children?: b.IBobrilChildren;
+}
+export declare function ScrollView(data: IScrollViewData, children?: b.IBobrilChildren): b.IBobrilNodeWithTag | b.IBobrilNodeWithChildren;

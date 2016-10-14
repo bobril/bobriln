@@ -37,11 +37,11 @@ export interface IImageData {
     children?: b.IBobrilChildren;
 }
 
-export function Image(data?: IViewData, children?: b.IBobrilChildren) {
-    if (children === undefined && data !== undefined) {
+export function Image(data: IImageData, children?: b.IBobrilChildren) {
+    if (children === undefined) {
         children = data.children;
     }
-    var res = { tag: "Image", children };
+    var res = { tag: "Image", attrs: { source: data.source }, children };
     if (data && data.style !== undefined)
         b.style(res, data.style);
     return res;
@@ -137,6 +137,7 @@ export const TextInput = b.createVirtualComponent<ITextInputData>({
         } else {
             me.children = d.children;
         }
+        b.style(me, d.style);
     },
     onChange(ctx: ITextInputCtx, value: { start: number, before: number, text: string }) {
         const d = ctx.data;
@@ -164,3 +165,22 @@ export const TextInput = b.createVirtualComponent<ITextInputData>({
         }
     }
 });
+
+export interface IScrollViewData {
+    horizontal?: boolean;
+    style?: b.IBobrilStyles;
+    children?: b.IBobrilChildren;
+}
+
+export function ScrollView(data: IScrollViewData, children?: b.IBobrilChildren) {
+    if (children === undefined) {
+        children = data.children;
+    }
+    var res: b.IBobrilNode = { tag: "ScrollView", children };
+    if (data.horizontal) {
+        res.attrs = { horizontal: true };
+    }
+    if (data.style !== undefined)
+        b.style(res, data.style);
+    return res;
+}

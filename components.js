@@ -21,10 +21,10 @@ function Text(data, children) {
 }
 exports.Text = Text;
 function Image(data, children) {
-    if (children === undefined && data !== undefined) {
+    if (children === undefined) {
         children = data.children;
     }
-    var res = { tag: "Image", children: children };
+    var res = { tag: "Image", attrs: { source: data.source }, children: children };
     if (data && data.style !== undefined)
         b.style(res, data.style);
     return res;
@@ -102,6 +102,7 @@ exports.TextInput = b.createVirtualComponent({
         else {
             me.children = d.children;
         }
+        b.style(me, d.style);
     },
     onChange: function (ctx, value) {
         var d = ctx.data;
@@ -131,3 +132,16 @@ exports.TextInput = b.createVirtualComponent({
         }
     }
 });
+function ScrollView(data, children) {
+    if (children === undefined) {
+        children = data.children;
+    }
+    var res = { tag: "ScrollView", children: children };
+    if (data.horizontal) {
+        res.attrs = { horizontal: true };
+    }
+    if (data.style !== undefined)
+        b.style(res, data.style);
+    return res;
+}
+exports.ScrollView = ScrollView;

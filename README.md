@@ -42,13 +42,13 @@ How to start
 
     for example: ANDROID_HOME=c:\Program Files (x86)\Android\android-sdk\
 
-Inside Manager install: Android SDK Build-tools 24.0.1 and Android 7.0 (API 24) SDK Platform 
+   Inside Manager install: Android SDK Build-tools 24.0.1 and Android 7.0 (API 24) SDK Platform 
 
 5. in empty directory
 
     bb bobriln -init
 
-Shortcut for lazy writters:
+   Shortcut for lazy writters:
 
     bb n -i
 

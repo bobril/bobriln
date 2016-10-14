@@ -8,6 +8,7 @@ import android.graphics.RectF;
 
 import com.facebook.csslayout.CSSConstants;
 import com.facebook.csslayout.CSSDirection;
+import com.facebook.csslayout.CSSNode;
 import com.facebook.csslayout.CSSOverflow;
 import com.facebook.csslayout.Spacing;
 
@@ -37,7 +38,7 @@ public class ViewDecoration {
 
     public void onBeforeDraw(Canvas canvas) {
         VDom vdom = owner.vdom;
-        PublicCSSNode css = owner.css;
+        CSSNode css = owner.css;
         backgroundPaint = vdom.color2Paint(backgroundColor);
         boolean rtl = css.getLayoutDirection() == CSSDirection.RTL;
         if (borderColor != null) {

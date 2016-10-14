@@ -1312,7 +1312,7 @@ function onResize(ev) {
     exports.invalidate();
     return false;
 }
-addEvent("resize", 10, onResize);
+addEvent("onResize", 10, onResize);
 function accDeviceBreaks(newBreaks) {
     if (newBreaks != null) {
         breaks = newBreaks;

@@ -11,19 +11,20 @@ import com.facebook.csslayout.CSSDirection;
 import com.facebook.csslayout.CSSFlexDirection;
 import com.facebook.csslayout.CSSJustify;
 import com.facebook.csslayout.CSSLayoutContext;
+import com.facebook.csslayout.CSSNode;
 import com.facebook.csslayout.CSSOverflow;
 import com.facebook.csslayout.CSSPositionType;
 import com.facebook.csslayout.CSSWrap;
 import com.facebook.csslayout.Spacing;
 
-public abstract class VNodeViewBased extends VNode {
+public abstract class VNodeViewBased extends VNode implements IHasTextStyle {
     View view;
-    PublicCSSNode css;
+    CSSNode css;
     ViewDecoration decoration;
     TextStyle textStyle;
 
     VNodeViewBased() {
-        css = new PublicCSSNode();
+        css = new CSSNode();
     }
 
     abstract View createView(Context ctx);
@@ -60,7 +61,7 @@ public abstract class VNodeViewBased extends VNode {
         if (trueParent instanceof VNodeViewGroupBased) {
             VNodeViewGroupBased parent = (VNodeViewGroupBased) getParent();
             if (parent != null) {
-                ViewGroup g = (ViewGroup) parent.view;
+                ViewGroup g = parent.getViewForChildren();
                 if (css.getParent() == null)
                     parent.css.addChildAt(css, indexInParent);
                 else {
@@ -174,6 +175,9 @@ public abstract class VNodeViewBased extends VNode {
                 if (decoration == null && overflow == CSSOverflow.VISIBLE) break;
                 lazyDecoration().setOverflow(overflow);
                 break;
+            case "direction":
+                css.setDirection(toCSSDirection(styleValue));
+                break;
             case "width":
                 css.setStyleWidth(toCSSDimension(styleValue));
                 break;
@@ -215,6 +219,7 @@ public abstract class VNodeViewBased extends VNode {
                 break;
             case "flexBasis":
                 css.setFlexBasis(toFlexBasis(styleValue));
+                break;
             case "flexDirection":
                 css.setFlexDirection(toFlexDirection(styleValue));
                 break;
@@ -318,6 +323,14 @@ public abstract class VNodeViewBased extends VNode {
                 textStyle = TextStyle.setStyle(textStyle, styleName, styleValue);
                 break;
         }
+    }
+
+    private CSSDirection toCSSDirection(Object value) {
+        if (value == null) return CSSDirection.INHERIT;
+        if (value.equals("rtl")) return CSSDirection.RTL;
+        if (value.equals("ltr")) return CSSDirection.LTR;
+        if (value.equals("inherit")) return CSSDirection.INHERIT;
+        return CSSDirection.INHERIT;
     }
 
     private CSSOverflow toCSSOverflow(Object value) {
@@ -426,5 +439,10 @@ public abstract class VNodeViewBased extends VNode {
             decoration = new ViewDecoration(this);
         }
         return decoration;
+    }
+
+    @Override
+    public TextStyle getTextStyle() {
+        return textStyle;
     }
 }

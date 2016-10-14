@@ -113,6 +113,12 @@ public class VDom {
                 return new VNodeTextInput();
             }
         });
+        globalApp.RegisterTag("ScrollView", new IVNodeFactory() {
+            @Override
+            public VNode create() {
+                return new VNodeScrollView();
+            }
+        });
     }
 
     private void setStyleDef(String name, Map<String, Object> style, Map<String, Map<String, Object>> pseudo) {

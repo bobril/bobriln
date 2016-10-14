@@ -6,6 +6,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AbsoluteLayout;
 
+import com.facebook.csslayout.CSSNode;
+
 public class NViewView extends ViewGroup {
     VNodeViewBased owner;
 
@@ -46,8 +48,8 @@ public class NViewView extends ViewGroup {
                 child.measure(MeasureSpec.makeMeasureSpec(lp.width, MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(lp.height, MeasureSpec.EXACTLY));
             }
         }
-        LayoutParams lp = this.getLayoutParams();
-        this.setMeasuredDimension(lp.width, lp.height);
+        CSSNode css = this.owner.css;
+        this.setMeasuredDimension(Math.round(css.getLayoutWidth()), Math.round(css.getLayoutHeight()));
     }
 }
 

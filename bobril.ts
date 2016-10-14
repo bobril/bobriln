@@ -1508,7 +1508,7 @@ function onResize(ev: { width: number, height: number, rotation: number, density
     return false;
 }
 
-addEvent("resize", 10, onResize);
+addEvent("onResize", 10, onResize);
 
 export function accDeviceBreaks(newBreaks?: number[][]): number[][] {
     if (newBreaks != null) {
