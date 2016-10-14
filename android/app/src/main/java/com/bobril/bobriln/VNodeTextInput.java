@@ -64,6 +64,7 @@ public class VNodeTextInput extends VNodeViewBased implements IHasTextStyle, IVN
             }
         }
         builder.clear();
+        builder.clearSpans();
         final TextStyleAccumulator accu = vdom.textStyleAccu;
         accu.ResetBuilder(builder, vdom.density);
         int flags = 0;

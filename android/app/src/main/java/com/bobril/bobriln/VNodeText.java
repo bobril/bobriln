@@ -50,6 +50,7 @@ public class VNodeText extends VNodeViewBased implements CSSNode.MeasureFunction
             }
         }
         builder.clear();
+        builder.clearSpans();
         final TextStyleAccumulator accu = vdom.textStyleAccu;
         accu.ResetBuilder(builder, vdom.density);
         int flags = 0;

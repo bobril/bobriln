@@ -1,6 +1,6 @@
 {
   "name": "bobriln",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Bobril Native",
   "main": "index.js",
   "types": "index.d.ts",
