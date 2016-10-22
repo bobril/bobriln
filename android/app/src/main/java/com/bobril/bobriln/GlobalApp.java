@@ -204,6 +204,11 @@ public class GlobalApp implements AccSensorListener.Listener, Gateway {
                                 }
                             }
                             cb.EventResult(eventRes);
+                        } else if (methodIdx == -3) {
+                            // Special Method to reload JS
+                            uiSync.release();
+                            reloadJS();
+                            return;
                         } else {
                             if (methodIdx < 0 || methodIdx >= nativeMethodImpls.size()) {
                                 that.ShowError("JS tried to call unknown method number " + String.valueOf(methodIdx));

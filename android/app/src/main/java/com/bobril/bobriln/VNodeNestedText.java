@@ -35,6 +35,7 @@ public class VNodeNestedText extends VNode implements IHasTextStyle {
     public void setStyle(String styleName, Object styleValue) {
         super.setStyle(styleName, styleValue);
         textStyle = TextStyle.setStyle(textStyle, styleName, styleValue);
+        getParent().invalidate();
     }
 
     @Override

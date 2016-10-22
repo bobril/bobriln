@@ -5,6 +5,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.RectF;
+import android.util.Log;
 
 import com.facebook.csslayout.CSSLayoutContext;
 
@@ -46,6 +47,7 @@ public class VDom {
                 int createInto = params.readInt();
                 int createBefore = params.readInt();
                 String tag = (String) params.readAny();
+                //Log.d("BobrilN", "b.insert nodeId: "+nodeId+" createInto: "+createInto+" createBefore: "+createBefore+" tag: "+tag);
                 that.insertBefore(nodeId, createInto, createBefore, tag);
             }
         });

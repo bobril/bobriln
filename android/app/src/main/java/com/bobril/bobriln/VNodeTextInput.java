@@ -124,9 +124,9 @@ public class VNodeTextInput extends VNodeViewBased implements IHasTextStyle, IVN
                 accu.ApplyTextStyle(accu.style);
                 accu.append(that.content);
             } else {
-                if (children != null) {
-                    for (int i = 0; i < children.size(); i++) {
-                        VNode node = children.get(i);
+                if (that.children != null) {
+                    for (int i = 0; i < that.children.size(); i++) {
+                        VNode node = that.children.get(i);
                         BuildSpannableString(node, accu);
                     }
                 }
@@ -135,6 +135,26 @@ public class VNodeTextInput extends VNodeViewBased implements IHasTextStyle, IVN
         } else if (that instanceof VNodeViewBased) {
             accu.appendView((VNodeViewBased) that);
         }
+    }
+
+    @Override
+    public int pos2NodeId(float x, float y) {
+        float lx = css.getLayoutX();
+        float ly = css.getLayoutY();
+        float w = css.getLayoutWidth();
+        float h = css.getLayoutHeight();
+        x -= lx;
+        y -= ly;
+        if (x < 0 || y < 0 || x > w || y > h) return 0;
+        if (spanVNodes != null) {
+            int c = spanVNodes.length;
+            for (int i = 0; i < c; i++) {
+                SpanVNode ch = spanVNodes[i];
+                int id = ch.node.pos2NodeId(x - ch.x, y - ch.y);
+                if (id > 0) return id;
+            }
+        }
+        return nodeId;
     }
 
     @Override

@@ -14,6 +14,8 @@ import com.facebook.csslayout.CSSNode;
 import com.facebook.csslayout.CSSNodeAPI;
 import com.facebook.csslayout.MeasureOutput;
 
+import static android.text.Layout.DIR_RIGHT_TO_LEFT;
+
 public class VNodeText extends VNodeViewBased implements CSSNode.MeasureFunction, IHasTextStyle, IVNodeTextLike {
     SpannableStringBuilder builder;
     public SpanVNode[] spanVNodes;
@@ -44,8 +46,8 @@ public class VNodeText extends VNodeViewBased implements CSSNode.MeasureFunction
     @Override
     int validateView(int indexInParent) {
         int res = super.validateView(indexInParent);
-        if (children!=null) {
-            for (int i=0;i<children.size();i++) {
+        if (children != null) {
+            for (int i = 0; i < children.size(); i++) {
                 children.get(i).validateView(0);
             }
         }
@@ -67,22 +69,22 @@ public class VNodeText extends VNodeViewBased implements CSSNode.MeasureFunction
         BuildSpannableString(this, accu);
         spanVNodes = accu.Flush();
         textView.setText(builder);
-        ViewGroup vg = (ViewGroup)view;
-        if (spanVNodes!=null) {
-            for(int i=0;i<spanVNodes.length; i++) {
+        ViewGroup vg = (ViewGroup) view;
+        if (spanVNodes != null) {
+            for (int i = 0; i < spanVNodes.length; i++) {
                 View cv = spanVNodes[i].node.view;
-                if (vg.getChildCount()-1>i && vg.getChildAt(i+1)==cv) continue;
-                if (cv.getParent()!=null) {
+                if (vg.getChildCount() - 1 > i && vg.getChildAt(i + 1) == cv) continue;
+                if (cv.getParent() != null) {
                     vg.removeView(cv);
                 }
-                vg.addView(cv,i+1);
+                vg.addView(cv, i + 1);
             }
-            while (vg.getChildCount()-1>spanVNodes.length) {
-                vg.removeViewAt(vg.getChildCount()-1);
+            while (vg.getChildCount() - 1 > spanVNodes.length) {
+                vg.removeViewAt(vg.getChildCount() - 1);
             }
         } else {
-            while (vg.getChildCount()>1) {
-                vg.removeViewAt(vg.getChildCount()-1);
+            while (vg.getChildCount() > 1) {
+                vg.removeViewAt(vg.getChildCount() - 1);
             }
         }
         return res;
@@ -116,9 +118,9 @@ public class VNodeText extends VNodeViewBased implements CSSNode.MeasureFunction
                 accu.ApplyTextStyle(accu.style);
                 accu.append(that.content);
             } else {
-                if (children != null) {
-                    for (int i = 0; i < children.size(); i++) {
-                        VNode node = children.get(i);
+                if (that.children != null) {
+                    for (int i = 0; i < that.children.size(); i++) {
+                        VNode node = that.children.get(i);
                         BuildSpannableString(node, accu);
                     }
                 }
@@ -129,9 +131,99 @@ public class VNodeText extends VNodeViewBased implements CSSNode.MeasureFunction
         }
     }
 
+    public int Offset2NodeId(VNode that, int[] offset) {
+        if (that == this || that instanceof VNodeNestedText) {
+            if (that.content != null) {
+                offset[0] -= that.content.length();
+                if (offset[0] <= 0) return that.nodeId;
+            } else {
+                if (that.children != null) {
+                    for (int i = 0; i < that.children.size(); i++) {
+                        VNode node = that.children.get(i);
+                        int res = Offset2NodeId(node, offset);
+                        if (res > 0) return res;
+                        if (offset[0] < 0) return 0;
+                    }
+                }
+            }
+        } else if (that instanceof VNodeViewBased) {
+            offset[0]--;
+            if (offset[0] < 0) return that.nodeId;
+        }
+        return 0;
+    }
+
+    @Override
+    public int pos2NodeId(float x, float y) {
+        float lx = css.getLayoutX();
+        float ly = css.getLayoutY();
+        float w = css.getLayoutWidth();
+        float h = css.getLayoutHeight();
+        x -= lx;
+        y -= ly;
+        if (x < 0 || y < 0 || x > w || y > h) return 0;
+        if (spanVNodes != null) {
+            int c = spanVNodes.length;
+            for (int i = 0; i < c; i++) {
+                SpanVNode ch = spanVNodes[i];
+                int id = ch.node.pos2NodeId(x - ch.x, y - ch.y);
+                if (id > 0) return id;
+            }
+        }
+        if (children != null) {
+            Layout layout = getLayout();
+            if (layout == null) return nodeId;
+            int ry = Math.round(y);
+            int line = layout.getLineForVertical(ry);
+            if (layout.getLineBottom(line)<ry) return nodeId;
+            int[] offset = vdom.tempIntArray;
+            offset[0] = layout.getOffsetForHorizontal(line, x);
+            float ph1 = layout.getPrimaryHorizontal(offset[0]);
+            float ph2;
+            int dir = layout.getParagraphDirection(line);
+            if (layout.getLineEnd(line)>offset[0]+1) {
+                ph2 = layout.getPrimaryHorizontal(offset[0] + 1);
+            } else {
+                if (dir==DIR_RIGHT_TO_LEFT)
+                    ph2 = layout.getLineLeft(line);
+                else
+                    ph2 = layout.getLineRight(line);
+            }
+            if (ph2 < ph1) {
+                if (ph2 <= x && x <= ph1) {
+                    offset[0]++;
+                    return Offset2NodeId(this, offset);
+                }
+            } else {
+                if (ph1 <= x && x <= ph2) {
+                    offset[0]++;
+                    return Offset2NodeId(this, offset);
+                }
+            }
+            if (layout.getLineStart(line)<offset[0]-1) {
+                ph2 = layout.getPrimaryHorizontal(offset[0]-1);
+            } else {
+                if (dir==DIR_RIGHT_TO_LEFT)
+                    ph2 = layout.getLineRight(line);
+                else
+                    ph2 = layout.getLineLeft(line);
+            }
+            if (ph2 < ph1) {
+                if (ph2 <= x && x <= ph1) {
+                    return Offset2NodeId(this, offset);
+                }
+            } else {
+                if (ph1 <= x && x <= ph2) {
+                    return Offset2NodeId(this, offset);
+                }
+            }
+        }
+        return nodeId;
+    }
+
     @Override
     public boolean isDirty() {
-        if (spanVNodes!=null) for (int i = 0; i < spanVNodes.length; i++) {
+        if (spanVNodes != null) for (int i = 0; i < spanVNodes.length; i++) {
             if (spanVNodes[i].node.isDirty()) return true;
         }
         return super.isDirty();
@@ -139,7 +231,7 @@ public class VNodeText extends VNodeViewBased implements CSSNode.MeasureFunction
 
     @Override
     public void flushLayout() {
-        if (spanVNodes!=null) for (int i = 0; i < spanVNodes.length; i++) {
+        if (spanVNodes != null) for (int i = 0; i < spanVNodes.length; i++) {
             spanVNodes[i].node.flushLayout();
         }
         super.flushLayout();
@@ -148,7 +240,7 @@ public class VNodeText extends VNodeViewBased implements CSSNode.MeasureFunction
     @Override
     public void doLayout(CSSLayoutContext ctx) {
         super.doLayout(ctx);
-        if (spanVNodes==null) return;
+        if (spanVNodes == null) return;
         for (int i = 0; i < spanVNodes.length; i++) {
             spanVNodes[i].node.doLayout(ctx);
         }

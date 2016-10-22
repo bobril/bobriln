@@ -3,11 +3,13 @@ package com.bobril.bobriln;
 import android.app.Activity;
 import android.content.res.Configuration;
 import android.graphics.Point;
+import android.graphics.Rect;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Display;
 import android.view.MotionEvent;
+import android.view.Window;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -25,11 +27,13 @@ public class MainActivity extends Activity implements Gateway.EventResultCallbac
         if (globalApp == null) {
             globalApp = new GlobalApp(getApplicationContext());
         }
-        NViewRoot rootView = new NViewRoot(this,globalApp);
+        NViewRoot rootView = new NViewRoot(this, globalApp);
         setContentView(rootView);
-        globalApp.OnCreate(rootView,this);
+        globalApp.OnCreate(rootView, this);
         updateMediumSize();
     }
+
+    float invDensity = 1;
 
     private void updateMediumSize() {
         Point p = new Point();
@@ -41,7 +45,8 @@ public class MainActivity extends Activity implements Gateway.EventResultCallbac
         if (resource > 0) {
             p.y -= getResources().getDimensionPixelSize(resource);
         }
-        globalApp.setSize(p.x,p.y,display.getRotation()*90,metrics.density);
+        invDensity = 1f / metrics.density;
+        globalApp.setSize(p.x, p.y, display.getRotation() * 90, metrics.density);
     }
 
     @Override
@@ -58,6 +63,7 @@ public class MainActivity extends Activity implements Gateway.EventResultCallbac
 
     private MotionEvent curEv;
     Queue<EventItem> evQueue = new ArrayDeque<>();
+
     class EventItem {
         MotionEvent me;
         String nName;
@@ -69,7 +75,7 @@ public class MainActivity extends Activity implements Gateway.EventResultCallbac
     public void EventResult(boolean result) {
         EventItem ei = evQueue.remove();
         if (!result) {
-            Log.d("BobrilN", "dispatching "+ei.nName);
+            Log.d("BobrilN", "dispatching " + ei.nName);
             super.dispatchTouchEvent(ei.me);
         }
     }
@@ -144,14 +150,14 @@ public class MainActivity extends Activity implements Gateway.EventResultCallbac
         pi.lastTime = time;
         HashMap<String, Object> param = new HashMap<>(1);
         param.put("id", Integer.valueOf(pointerId));
-        param.put("x", Float.valueOf(x));
-        param.put("y", Float.valueOf(y));
+        param.put("x", Float.valueOf(x * invDensity));
+        param.put("y", Float.valueOf(y * invDensity));
 
         emitHelper("pointerMove", param, pi2NodeId(x, y), time);
     }
 
     void emitHelper(String name, Map<String, Object> params, int nodeId, long time) {
-        if (curEv!=null) {
+        if (curEv != null) {
             EventItem ei = new EventItem();
             ei.me = curEv;
             ei.nName = name;
@@ -179,8 +185,8 @@ public class MainActivity extends Activity implements Gateway.EventResultCallbac
         pi.lastTime = time;
         HashMap<String, Object> param = new HashMap<>(1);
         param.put("id", Integer.valueOf(pointerId));
-        param.put("x", Float.valueOf(x));
-        param.put("y", Float.valueOf(y));
+        param.put("x", Float.valueOf(x * invDensity));
+        param.put("y", Float.valueOf(y * invDensity));
         emitHelper("pointerDown", param, pi2NodeId(x, y), time);
     }
 
@@ -203,8 +209,8 @@ public class MainActivity extends Activity implements Gateway.EventResultCallbac
         pi.lastTime = time;
         HashMap<String, Object> param = new HashMap<>(1);
         param.put("id", Integer.valueOf(pointerId));
-        param.put("x", Float.valueOf(x));
-        param.put("y", Float.valueOf(y));
+        param.put("x", Float.valueOf(x * invDensity));
+        param.put("y", Float.valueOf(y * invDensity));
         emitHelper("pointerUp", param, pi2NodeId(x, y), time);
     }
 
@@ -216,34 +222,39 @@ public class MainActivity extends Activity implements Gateway.EventResultCallbac
         pi.state = pi.state & ~PointerInfo.STATE_ACTIVE;
     }
 
+    Rect tempRect = new Rect();
+
     @Override
     public boolean dispatchTouchEvent(MotionEvent ev) {
+        Window window = getWindow();
+        window.getDecorView().getWindowVisibleDisplayFrame(tempRect);
+        int statusBarHeight = tempRect.top;
         int pc = ev.getPointerCount();
         int hc = ev.getHistorySize();
         for (int hi = 0; hi < hc; hi++) {
             long time = ev.getHistoricalEventTime(hi);
             for (int pi = 0; pi < pc; pi++) {
-                emitPointerMove(ev.getPointerId(pi), ev.getHistoricalX(pi, hi), ev.getHistoricalY(pi, hi), time, false);
+                emitPointerMove(ev.getPointerId(pi), ev.getHistoricalX(pi, hi), ev.getHistoricalY(pi, hi) - statusBarHeight, time, false);
             }
         }
         int mainpi = ev.getActionIndex();
         long time = ev.getEventTime();
         for (int pi = 0; pi < pc; pi++) {
             if (mainpi == pi) continue;
-            emitPointerMove(ev.getPointerId(pi), ev.getX(pi), ev.getY(pi), time, false);
+            emitPointerMove(ev.getPointerId(pi), ev.getX(pi), ev.getY(pi) - statusBarHeight, time, false);
         }
         curEv = ev;
         switch (ev.getActionMasked()) {
             case MotionEvent.ACTION_MOVE:
-                emitPointerMove(ev.getPointerId(mainpi), ev.getX(mainpi), ev.getY(mainpi), time, false);
+                emitPointerMove(ev.getPointerId(mainpi), ev.getX(mainpi), ev.getY(mainpi) - statusBarHeight, time, false);
                 break;
             case MotionEvent.ACTION_DOWN:
             case MotionEvent.ACTION_POINTER_DOWN:
-                emitPointerDown(ev.getPointerId(mainpi), ev.getX(mainpi), ev.getY(mainpi), time);
+                emitPointerDown(ev.getPointerId(mainpi), ev.getX(mainpi), ev.getY(mainpi) - statusBarHeight, time);
                 break;
             case MotionEvent.ACTION_UP:
             case MotionEvent.ACTION_POINTER_UP:
-                emitPointerUp(ev.getPointerId(mainpi), ev.getX(mainpi), ev.getY(mainpi), time);
+                emitPointerUp(ev.getPointerId(mainpi), ev.getX(mainpi), ev.getY(mainpi) - statusBarHeight, time);
                 break;
             case MotionEvent.ACTION_CANCEL:
                 emitPointerCancel(ev.getPointerId(mainpi));
