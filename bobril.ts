@@ -127,6 +127,7 @@ export interface IBobrilComponent {
     // called on string input element when selection or caret position changes
     onSelectionChange?(ctx: IBobrilCtx, event: ISelectionChangeEvent): void;
 
+    onBackPressed?(ctx: IBobrilCtx): boolean;
     onKeyDown?(ctx: IBobrilCtx, event: IKeyDownUpEvent): boolean;
     onKeyUp?(ctx: IBobrilCtx, event: IKeyDownUpEvent): boolean;
     onKeyPress?(ctx: IBobrilCtx, event: IKeyPressEvent): boolean;

@@ -7,3 +7,4 @@ __export(require('./gateway'));
 __export(require('./bobril'));
 require('./eventHandlers');
 __export(require('./components'));
+__export(require('./statics'));

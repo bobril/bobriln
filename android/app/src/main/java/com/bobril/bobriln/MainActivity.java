@@ -1,6 +1,7 @@
 package com.bobril.bobriln;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.res.Configuration;
 import android.graphics.Point;
 import android.graphics.Rect;
@@ -9,7 +10,9 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Display;
 import android.view.MotionEvent;
+import android.view.View;
 import android.view.Window;
+import android.view.inputmethod.InputMethodManager;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -24,8 +27,15 @@ public class MainActivity extends Activity implements Gateway.EventResultCallbac
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        final MainActivity that = this;
         if (globalApp == null) {
             globalApp = new GlobalApp(getApplicationContext());
+            globalApp.RegisterNativeMethod("b.dismissKeyboard", new Gateway.NativeCall() {
+                @Override
+                public void Run(Decoder params, Encoder result) {
+                    that.dismissKeyboard();
+                }
+            });
         }
         NViewRoot rootView = new NViewRoot(this, globalApp);
         setContentView(rootView);
@@ -76,7 +86,15 @@ public class MainActivity extends Activity implements Gateway.EventResultCallbac
         EventItem ei = evQueue.remove();
         if (!result) {
             Log.d("BobrilN", "dispatching " + ei.nName);
-            super.dispatchTouchEvent(ei.me);
+            if (ei.me == null) {
+                switch (ei.nName) {
+                   case "backPressed":
+                       super.onBackPressed();
+                       break;
+                }
+            } else {
+                super.dispatchTouchEvent(ei.me);
+            }
         }
     }
 
@@ -266,5 +284,28 @@ public class MainActivity extends Activity implements Gateway.EventResultCallbac
         curEv = null;
         return true;
     }
-}
 
+    @Override
+    public void onBackPressed() {
+        EventItem ei = new EventItem();
+        ei.me = null;
+        ei.nName = "backPressed";
+        ei.nParams = new HashMap<>();
+        ei.time = -1;
+        evQueue.add(ei);
+        globalApp.emitJSEvent(ei.nName, ei.nParams, 0, -1, this);
+    }
+
+    public void dismissKeyboard() {
+        Window window = this.getWindow();
+        if (window != null) {
+            View v = window.getCurrentFocus();
+            if (v != null) {
+                InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+                if (imm!=null){
+                    imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
+                }
+            }
+        }
+    }
+}
