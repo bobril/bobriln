@@ -24,8 +24,9 @@ public class VDom {
     public Map<String, List<Object>> styleDefs;
     int width;
     int height;
-    CSSLayoutContext cssLayoutContext = new CSSLayoutContext();
+    int rotation;
     float density;
+    CSSLayoutContext cssLayoutContext = new CSSLayoutContext();
     public TextStyleAccumulator textStyleAccu = new TextStyleAccumulator();
 
     VDom(GlobalApp globalApp) {
@@ -85,6 +86,13 @@ public class VDom {
                 that.setStyleDef(name, style, pseudo);
             }
         });
+        globalApp.RegisterNativeMethod("b.removeNode", new Gateway.NativeCall() {
+            @Override
+            public void Run(Decoder params, Encoder result) {
+                int nodeId = params.readInt();
+                that.removeNode(nodeId);
+            }
+        });
         globalApp.RegisterTag("Text", new IVNodeFactory() {
             @Override
             public VNode create() {
@@ -123,6 +131,11 @@ public class VDom {
         });
     }
 
+    private void removeNode(int nodeId) {
+        VNode n = nodes.get(nodeId);
+        n.lparent.remove(n);
+    }
+
     private void setStyleDef(String name, Map<String, Object> style, Map<String, Map<String, Object>> pseudo) {
         // pseudo is currently ignored
         Iterator<Map.Entry<String, Object>> iterator = style.entrySet().iterator();
@@ -151,6 +164,7 @@ public class VDom {
         nodes = new ArrayList<>();
         nodes.add(rootVNode);
         rootVNode.setScreenSize(width, height);
+        emitOnResize();
     }
 
     public void insertBefore(int nodeId, int createInto, int createBefore, String tag) {
@@ -214,13 +228,24 @@ public class VDom {
         }
     }
 
-    public void setSize(int x, int y, float density) {
-        if (this.width != x || this.height != y) {
+    public void setSize(int x, int y, int rotation, float density) {
+        if (this.width != x || this.height != y || this.rotation != rotation) {
             this.width = x;
             this.height = y;
+            this.rotation = rotation;
             this.density = density;
+            emitOnResize();
             if (rootVNode != null) RunIdle();
         }
+    }
+
+    private void emitOnResize() {
+        Map<String,Object> param = new HashMap<String,Object>();
+        param.put("width", Math.round(width/density));
+        param.put("height", Math.round(height/density));
+        param.put("rotation", rotation);
+        param.put("density", density);
+        globalApp.emitJSEvent("onResize", param, 0, -1);
     }
 
     int lastColorCache = Color.TRANSPARENT;

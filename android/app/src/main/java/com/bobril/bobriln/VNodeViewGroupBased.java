@@ -8,11 +8,15 @@ public abstract class VNodeViewGroupBased extends VNodeViewBased {
 
     @Override
     int validateView(int indexInParent) {
+        boolean wasNeed = needValidate;
         int res = super.validateView(indexInParent);
-        int idx = 0;
-        if (children!=null) {
-            for (int i=0;i<children.size();i++) {
-                idx = children.get(i).validateView(idx);
+        if (wasNeed)
+        {
+            int idx = 0;
+            if (children!=null) {
+                for (int i=0;i<children.size();i++) {
+                    idx = children.get(i).validateView(idx);
+                }
             }
         }
         return res;

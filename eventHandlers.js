@@ -6,3 +6,6 @@ b.addEvent("onChange", 10, function (ev, node) {
 b.addEvent("backPressed", 10, function () {
     return b.broadcast("onBackPressed", undefined) !== undefined;
 });
+b.addEvent("onScroll", 10, function (ev, node) {
+    return b.bubble(node, "onScroll", ev) !== undefined;
+});

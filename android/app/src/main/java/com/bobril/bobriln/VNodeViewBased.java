@@ -52,6 +52,29 @@ public abstract class VNodeViewBased extends VNode implements IHasTextStyle {
     }
 
     @Override
+    public void remove(VNode child) {
+        if (child instanceof VNodeViewBased) {
+            VNodeViewBased ch = (VNodeViewBased)child;
+            VNode trueParent = ch.getParent();
+            if (trueParent instanceof VNodeViewGroupBased) {
+                VNodeViewGroupBased parent = (VNodeViewGroupBased) trueParent;
+                if (parent != null) {
+                    if (ch.css.getParent() != null) {
+                        parent.css.removeChildAt(parent.css.indexOf(ch.css));
+                    }
+                }
+            }
+            if (ch.view != null) {
+                ViewGroup g = (ViewGroup) ch.view.getParent();
+                if (g != null) {
+                    g.removeView(ch.view);
+                }
+            }
+        }
+        super.remove(child);
+    }
+
+    @Override
     int validateView(int indexInParent) {
         needValidate = false;
         if (view == null) {
@@ -59,7 +82,7 @@ public abstract class VNodeViewBased extends VNode implements IHasTextStyle {
         }
         VNode trueParent = getParent();
         if (trueParent instanceof VNodeViewGroupBased) {
-            VNodeViewGroupBased parent = (VNodeViewGroupBased) getParent();
+            VNodeViewGroupBased parent = (VNodeViewGroupBased) trueParent;
             if (parent != null) {
                 ViewGroup g = parent.getViewForChildren();
                 if (css.getParent() == null)

@@ -48,7 +48,9 @@ public class VNodeText extends VNodeViewBased implements CSSNode.MeasureFunction
         int res = super.validateView(indexInParent);
         if (children != null) {
             for (int i = 0; i < children.size(); i++) {
-                children.get(i).validateView(0);
+                VNode child = children.get(i);
+                if (child.needValidate())
+                    child.validateView(0);
             }
         }
         builder.clear();

@@ -80,7 +80,7 @@ function __bobrilncb() {
         }
         while (!eventDecoder.isAnyEnd()) eventDecoder.next();
         eventDecoder.next();
-        console.log("Event " + name + " " + JSON.stringify(param) + " node:" + nodeId + " time:" + time);
+        //console.log("Event " + name + " " + JSON.stringify(param) + " node:" + nodeId + " time:" + time);
         let res = eventHandler!(name, param, nodeId, time);
         if (res === true || res === false) {
             if (id >= 0) writeEventResult(id, <boolean>res);

@@ -310,15 +310,10 @@ public class GlobalApp implements AccSensorListener.Listener, Gateway {
         tag2factory.put(tag.substring(0,1).toLowerCase()+tag.substring(1), factory);
     }
 
+
     public void setSize(int x, int y, int rotation, float density) {
         imageCache.setDensity(density);
-        Map<String,Object> param = new HashMap<String,Object>();
-        param.put("width", Math.round(x/density));
-        param.put("height", Math.round(y/density));
-        param.put("rotation", rotation);
-        param.put("density", density);
-        emitJSEvent("onResize", param, 0, -1);
-        vdom.setSize(x,y,density);
+        vdom.setSize(x,y,rotation,density);
     }
 
     @Override

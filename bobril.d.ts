@@ -36,6 +36,10 @@ export interface IBobrilComponent {
     shouldStopBroadcast?(ctx: IBobrilCtx, name: string, param: Object): boolean;
     onChange?(ctx: IBobrilCtx, value: any): void;
     onSelectionChange?(ctx: IBobrilCtx, event: ISelectionChangeEvent): void;
+    onScroll?(ctx: IBobrilCtx, event: {
+        left: number;
+        top: number;
+    }): void;
     onBackPressed?(ctx: IBobrilCtx): boolean;
     onKeyDown?(ctx: IBobrilCtx, event: IKeyDownUpEvent): boolean;
     onKeyUp?(ctx: IBobrilCtx, event: IKeyDownUpEvent): boolean;

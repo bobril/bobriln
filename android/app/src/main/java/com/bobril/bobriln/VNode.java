@@ -177,4 +177,13 @@ public abstract class VNode {
     public int pos2NodeId(float x, float y) {
         return 0;
     }
+
+    public void remove(VNode child) {
+        if (children != null) {
+            children.remove(child);
+            if (children.size() == 0) {
+                children = null;
+            }
+        }
+    }
 }

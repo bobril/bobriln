@@ -85,7 +85,7 @@ public class MainActivity extends Activity implements Gateway.EventResultCallbac
     public void EventResult(boolean result) {
         EventItem ei = evQueue.remove();
         if (!result) {
-            Log.d("BobrilN", "dispatching " + ei.nName);
+            //Log.d("BobrilN", "dispatching " + ei.nName);
             if (ei.me == null) {
                 switch (ei.nName) {
                    case "backPressed":

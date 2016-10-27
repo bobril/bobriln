@@ -91,6 +91,7 @@ public class CSSNode implements CSSNodeAPI<CSSNode> {
   public CSSNode removeChildAt(int i) {
     CSSNode removed = mChildren.remove(i);
     removed.mParent = null;
+    removed.nextChild = null;
     dirty();
     return removed;
   }
