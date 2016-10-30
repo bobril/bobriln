@@ -13,6 +13,7 @@ import android.webkit.ConsoleMessage;
 import android.webkit.JavascriptInterface;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
+import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -23,6 +24,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Queue;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.Semaphore;
 
 public class GlobalApp implements AccSensorListener.Listener, Gateway {
@@ -39,13 +43,13 @@ public class GlobalApp implements AccSensorListener.Listener, Gateway {
     final Encoder nativeResultsEncoder = new Encoder();
     final Semaphore uiSync = new Semaphore(0);
     final Encoder eventEncoder = new Encoder();
-    final Map<Integer, Gateway.EventResultCallback> eventCallbacks = new HashMap<>();
-    final List<Integer> freeEventIds = new ArrayList<>();
-    int lastEventId = 0;
+    final Semaphore eventSync = new Semaphore(0);
     ArrayList<Runnable> resetMethods = new ArrayList();
     Map<String, IVNodeFactory> tag2factory = new HashMap<>();
     private MainActivity mainActivity;
     public ImageCache imageCache;
+    private boolean eventResult;
+    final Queue<String> sendToJsQueue = new ArrayBlockingQueue<String>(64);
 
     public class Jsiface {
         GlobalApp globalApp;
@@ -70,6 +74,12 @@ public class GlobalApp implements AccSensorListener.Listener, Gateway {
         webView.getSettings().setJavaScriptEnabled(true);
         webView.addJavascriptInterface(new Jsiface(this), "__bobriln");
         webView.setWebViewClient(new WebViewClient() {
+            @SuppressWarnings("deprecation")
+            @Override
+            public WebResourceResponse shouldInterceptRequest(WebView view, String url) {
+                return super.shouldInterceptRequest(view, url);
+            }
+
             @Override
             public void onPageFinished(WebView view, String url) {
                 Log.d("BobrilN", "PageFinished " + url);
@@ -163,13 +173,19 @@ public class GlobalApp implements AccSensorListener.Listener, Gateway {
 
     String c(final String param) {
         if (param.length()==0) {
-            synchronized (eventEncoder) {
-                String res = eventEncoder.toLatin1String();
-                eventEncoder.reset();
-                return res;
-            }
+            String res = sendToJsQueue.poll();
+            if (res==null) return "";
+            return res;
         }
         final GlobalApp that = this;
+        if (param.length()==1) {
+            char ch = param.charAt(0);
+            if (ch==213 || ch==214) {
+                eventResult = ch==214;
+                eventSync.release();
+                return "";
+            }
+        }
         mainActivity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -183,6 +199,7 @@ public class GlobalApp implements AccSensorListener.Listener, Gateway {
                             for (int i = 0; i < resetMethods.size(); i++) {
                                 resetMethods.get(i).run();
                             }
+                            nativeResultsEncoder.writeNumber(1);
                             nativeResultsEncoder.writeString("Bobril Native");
                             nativeResultsEncoder.writeString("Android");
                             for (int i = 0; i < nativeMethodNames.size(); i++) {
@@ -190,26 +207,12 @@ public class GlobalApp implements AccSensorListener.Listener, Gateway {
                             }
                             nativeResultsEncoder.writeEndOfBlock();
                             jsReady = true;
-                        } else if (methodIdx == -2) {
-                            // Special Method to return event result
-                            int id = nativeParamsDecoder.readInt();
-                            boolean eventRes = nativeParamsDecoder.readBoolean();
-                            Gateway.EventResultCallback cb = null;
-                            synchronized (eventEncoder) {
-                                cb = eventCallbacks.remove(id);
-                                if (id==lastEventId-1) {
-                                    lastEventId--;
-                                } else {
-                                    freeEventIds.add(id);
-                                }
-                            }
-                            cb.EventResult(eventRes);
                         } else if (methodIdx == -3) {
                             // Special Method to reload JS
-                            uiSync.release();
                             reloadJS();
                             return;
                         } else {
+                            nativeResultsEncoder.writeNumber(1);
                             if (methodIdx < 0 || methodIdx >= nativeMethodImpls.size()) {
                                 that.ShowError("JS tried to call unknown method number " + String.valueOf(methodIdx));
                             } else {
@@ -221,6 +224,9 @@ public class GlobalApp implements AccSensorListener.Listener, Gateway {
                         while (!nativeParamsDecoder.isAnyEnd()) nativeParamsDecoder.next();
                         nativeParamsDecoder.next();
                     }
+                    String res = nativeResultsEncoder.toLatin1String();
+                    nativeResultsEncoder.reset();
+                    triggerJS(res);
                     if (vdom.WantIdle()) {
                         vdom.RunIdle();
                     }
@@ -228,17 +234,9 @@ public class GlobalApp implements AccSensorListener.Listener, Gateway {
                     that.ShowError(e.toString());
                     e.printStackTrace();
                 }
-                uiSync.release();
             }
         });
-        try {
-            uiSync.acquire();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        String res = nativeResultsEncoder.toLatin1String();
-        nativeResultsEncoder.reset();
-        return res;
+        return "";
     }
 
     @Override
@@ -292,7 +290,7 @@ public class GlobalApp implements AccSensorListener.Listener, Gateway {
     @Override
     public void RegisterNativeMethod(String name, NativeCall implementation) {
         for (int i = 0; i < nativeMethodNames.size(); i++) {
-            if (nativeMethodNames.get(i) == name)
+            if (Objects.equals(nativeMethodNames.get(i), name))
                 throw new Error("Trying to register " + name + " second time");
         }
         nativeMethodNames.add(name);
@@ -310,7 +308,6 @@ public class GlobalApp implements AccSensorListener.Listener, Gateway {
         tag2factory.put(tag.substring(0,1).toLowerCase()+tag.substring(1), factory);
     }
 
-
     public void setSize(int x, int y, int rotation, float density) {
         imageCache.setDensity(density);
         vdom.setSize(x,y,rotation,density);
@@ -318,43 +315,48 @@ public class GlobalApp implements AccSensorListener.Listener, Gateway {
 
     @Override
     public void emitJSEvent(String name, Map<String, Object> param, int nodeId, long time) {
-        synchronized (eventEncoder) {
-            eventEncoder.writeNumber(-1);
-            eventEncoder.writeString(name);
-            eventEncoder.writeObject(param);
-            eventEncoder.writeNumber(nodeId);
-            if (time!=-1) {
-                eventEncoder.writeNumber(System.currentTimeMillis()+time-SystemClock.uptimeMillis());
-            }
-            eventEncoder.writeEndOfBlock();
+        eventEncoder.writeNumber(-1);
+        eventEncoder.writeString(name);
+        eventEncoder.writeObject(param);
+        eventEncoder.writeNumber(nodeId);
+        if (time!=-1) {
+            eventEncoder.writeNumber(System.currentTimeMillis()+time-SystemClock.uptimeMillis());
+        eventEncoder.writeEndOfBlock();
         }
-        if (jsReady) triggerJS();
+        triggerJS(eventEncoder.toLatin1String());
+        eventEncoder.reset();
     }
 
     @Override
-    public void emitJSEvent(String name, Map<String, Object> param, int nodeId, long time, EventResultCallback callback) {
-        synchronized (eventEncoder) {
-            int id = 0;
-            if (freeEventIds.isEmpty()) {
-                id = lastEventId++;
-            } else {
-                id = freeEventIds.remove(freeEventIds.size()-1);
-            }
-            eventCallbacks.put(id, callback);
-            eventEncoder.writeNumber(id);
-            eventEncoder.writeString(name);
-            eventEncoder.writeObject(param);
-            eventEncoder.writeNumber(nodeId);
-            if (time!=-1) {
-                eventEncoder.writeNumber(System.currentTimeMillis()+time-SystemClock.uptimeMillis());
-            }
-            eventEncoder.writeEndOfBlock();
+    public boolean emitJSEventSync(String name, Map<String, Object> param, int nodeId, long time) {
+        long start = System.nanoTime();
+        if (!jsReady) return false;
+        eventEncoder.writeNumber(0);
+        eventEncoder.writeString(name);
+        eventEncoder.writeObject(param);
+        eventEncoder.writeNumber(nodeId);
+        if (time!=-1) {
+            eventEncoder.writeNumber(System.currentTimeMillis()+time-SystemClock.uptimeMillis());
         }
-        if (jsReady) triggerJS();
+        eventEncoder.writeEndOfBlock();
+        triggerJS(eventEncoder.toLatin1String());
+        eventEncoder.reset();
+        try {
+            eventSync.acquire();
+        } catch (InterruptedException e) {
+            return false;
+        }
+        //Log.d("BobrilN", "nanos "+name+" "+(System.nanoTime()-start));
+        return eventResult;
     }
 
-    private void triggerJS() {
-        webView.evaluateJavascript("__bobrilncb()", new ValueCallback<String>() {
+    private void triggerJS(String param) {
+        if (!sendToJsQueue.offer(param)) {
+            this.ShowError("SendToJsQueue overflow");
+            return;
+        }
+        if (jsReady)
+            webView.evaluateJavascript("__bobrilncb()", new ValueCallback<String>() {
             @Override
             public void onReceiveValue(String s) {
                 // Ignore

@@ -7,10 +7,6 @@ public interface Gateway {
         void Run(Decoder params, Encoder result);
     }
 
-    interface EventResultCallback {
-        void EventResult(boolean result);
-    }
-
     void RegisterNativeMethod(String name, NativeCall implementation);
     void RegisterResetMethod(Runnable implementation);
 
@@ -18,5 +14,6 @@ public interface Gateway {
 
     // use time=-1 for current time, use nodeId=0 for undefined node
     void emitJSEvent(String name, Map<String, Object> param, int nodeId, long time);
-    void emitJSEvent(String name, Map<String, Object> param, int nodeId, long time, EventResultCallback callback);
+    // returns true if JS wants to prevent default
+    boolean emitJSEventSync(String name, Map<String, Object> param, int nodeId, long time);
 }

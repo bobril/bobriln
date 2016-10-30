@@ -5,9 +5,8 @@ var asap_1 = require('./asap');
 if (typeof DEBUG === "undefined")
     DEBUG = true;
 var nativeMethodName2Idx = Object.create(null);
-var eventDecoder = new decoder.Decoder();
+var nativeCallbackDecoder = new decoder.Decoder();
 var nativeMethodParamEncoder = new encoder.Encoder();
-var nativeMethodResultDecoder = new decoder.Decoder();
 var nativeCallResultCallbacks = [];
 var nativeCallResultResolvers = [];
 var nativeCallResultRejecters = [];
@@ -33,7 +32,6 @@ function reset() {
         }
         console.log("Starting " + fw + " " + localPlatformName + " with " + idx + " methods");
         readyResolver();
-        __bobrilncb();
     });
 }
 var eventHandler = undefined;
@@ -41,54 +39,65 @@ function setEventHandler(handler) {
     eventHandler = handler;
 }
 exports.setEventHandler = setEventHandler;
-function writeEventResult(id, value) {
-    nativeMethodParamEncoder.writeNumber(-2);
-    nativeMethodParamEncoder.writeNumber(id);
-    if (value)
-        nativeMethodParamEncoder.writeTrue();
-    else
-        nativeMethodParamEncoder.writeFalse();
-    nativeMethodParamEncoder.writeEndOfBlock();
-    scheduleNativeCall();
+function writeEventResult(_id, value) {
+    __bobriln.c(value ? "\xd6" : "\xd5"); // true or false
 }
 var inAsyncEvent = false;
 function __bobrilncb() {
     if (inAsyncEvent)
         return;
     var _loop_1 = function() {
-        if (eventDecoder.isEOF()) {
-            eventDecoder.initFromLatin1String(__bobriln.c(""));
-            if (eventDecoder.isEOF())
+        if (nativeCallbackDecoder.isEOF()) {
+            nativeCallbackDecoder.initFromLatin1String(__bobriln.c(""));
+            if (nativeCallbackDecoder.isEOF())
                 return { value: void 0 };
         }
-        var id = eventDecoder.readAny();
-        var name_1 = eventDecoder.readAny();
-        var param = eventDecoder.readAny();
-        var nodeId = eventDecoder.readAny();
-        var time = -1;
-        if (!eventDecoder.isAnyEnd()) {
-            time = eventDecoder.readAny();
+        var id = nativeCallbackDecoder.readAny();
+        if (id === 1) {
+            var cb = nativeCallResultCallbacks.shift();
+            if (cb != null) {
+                var resolver = nativeCallResultResolvers.shift();
+                var rejecter = nativeCallResultRejecters.shift();
+                try {
+                    var res_1 = cb(nativeCallbackDecoder);
+                    resolver(res_1);
+                }
+                catch (err) {
+                    rejecter(err);
+                }
+            }
+            while (!nativeCallbackDecoder.isAnyEnd())
+                nativeCallbackDecoder.next();
+            nativeCallbackDecoder.next();
+            return "continue";
         }
-        while (!eventDecoder.isAnyEnd())
-            eventDecoder.next();
-        eventDecoder.next();
-        console.log("Event " + name_1 + " " + JSON.stringify(param) + " node:" + nodeId + " time:" + time);
+        var name_1 = nativeCallbackDecoder.readAny();
+        var param = nativeCallbackDecoder.readAny();
+        var nodeId = nativeCallbackDecoder.readAny();
+        var time = -1;
+        if (!nativeCallbackDecoder.isAnyEnd()) {
+            time = nativeCallbackDecoder.readAny();
+        }
+        while (!nativeCallbackDecoder.isAnyEnd())
+            nativeCallbackDecoder.next();
+        nativeCallbackDecoder.next();
+        //console.log("Event " + name + " " + JSON.stringify(param) + " node:" + nodeId + " time:" + time);
         var res = eventHandler(name_1, param, nodeId, time);
         if (res === true || res === false) {
-            if (id >= 0)
+            if (id === 0)
                 writeEventResult(id, res);
         }
         else {
             inAsyncEvent = true;
             res.then(function (val) {
                 inAsyncEvent = false;
-                if (id >= 0)
+                if (id === 0)
                     writeEventResult(id, val);
                 __bobrilncb();
             }, function (err) {
                 console.error(err);
                 inAsyncEvent = false;
-                if (id >= 0)
+                if (id === 0)
                     writeEventResult(id, false);
                 __bobrilncb();
             });
@@ -120,28 +129,8 @@ function scheduleNativeCall() {
     nativeCallScheduled = true;
     asap_1.asap(function () {
         nativeCallScheduled = false;
-        nativeMethodResultDecoder.initFromLatin1String(__bobriln.c(nativeMethodParamEncoder.toLatin1String()));
+        __bobriln.c(nativeMethodParamEncoder.toLatin1String());
         nativeMethodParamEncoder.reset();
-        var cbs = nativeCallResultCallbacks.splice(0);
-        var resolvers = nativeCallResultResolvers.splice(0);
-        var rejecters = nativeCallResultRejecters.splice(0);
-        var resi = 0;
-        for (var i = 0; i < cbs.length; i++) {
-            var cb = cbs[i];
-            if (cb != null) {
-                try {
-                    var res = cb(nativeMethodResultDecoder);
-                    resolvers[resi](res);
-                }
-                catch (err) {
-                    rejecters[resi](err);
-                }
-                resi++;
-            }
-            while (!nativeMethodResultDecoder.isAnyEnd())
-                nativeMethodResultDecoder.next();
-            nativeMethodResultDecoder.next();
-        }
     });
 }
 function callNativeIgnoreResult() {

@@ -11,9 +11,8 @@ declare var __bobriln: {
 };
 
 const nativeMethodName2Idx: { [name: string]: number } = Object.create(null);
-const eventDecoder = new decoder.Decoder();
+const nativeCallbackDecoder = new decoder.Decoder();
 const nativeMethodParamEncoder = new encoder.Encoder();
-const nativeMethodResultDecoder = new decoder.Decoder();
 const nativeCallResultCallbacks: (((decoder: decoder.Decoder) => any) | undefined)[] = [];
 const nativeCallResultResolvers: ((param: any) => void)[] = [];
 const nativeCallResultRejecters: ((param: any) => void)[] = [];
@@ -38,7 +37,6 @@ function reset() {
         }
         console.log("Starting " + fw + " " + localPlatformName + " with " + idx + " methods");
         readyResolver();
-        __bobrilncb();
     });
 }
 
@@ -48,15 +46,8 @@ export function setEventHandler(handler: (name: string, param: Object, nodeId: n
     eventHandler = handler;
 }
 
-function writeEventResult(id: number, value: boolean) {
-    nativeMethodParamEncoder.writeNumber(-2);
-    nativeMethodParamEncoder.writeNumber(id);
-    if (value)
-        nativeMethodParamEncoder.writeTrue();
-    else
-        nativeMethodParamEncoder.writeFalse();
-    nativeMethodParamEncoder.writeEndOfBlock();
-    scheduleNativeCall();
+function writeEventResult(_id: number, value: boolean) {
+    __bobriln.c(value ? "\xd6" : "\xd5"); // true or false
 }
 
 let inAsyncEvent = false;
@@ -65,35 +56,52 @@ function __bobrilncb() {
     if (inAsyncEvent)
         return;
     while (true) {
-        if (eventDecoder.isEOF()) {
-            eventDecoder.initFromLatin1String(__bobriln.c(""));
-            if (eventDecoder.isEOF())
+        if (nativeCallbackDecoder.isEOF()) {
+            nativeCallbackDecoder.initFromLatin1String(__bobriln.c(""));
+            if (nativeCallbackDecoder.isEOF())
                 return;
         }
-        let id = eventDecoder.readAny();
-        let name = eventDecoder.readAny();
-        let param = eventDecoder.readAny();
-        let nodeId = eventDecoder.readAny();
-        let time = -1;
-        if (!eventDecoder.isAnyEnd()) {
-            time = eventDecoder.readAny();
+        let id = nativeCallbackDecoder.readAny();
+        if (id === 1) {
+            let cb = nativeCallResultCallbacks.shift();
+            if (cb != null) {
+                let resolver = nativeCallResultResolvers.shift() !;
+                let rejecter = nativeCallResultRejecters.shift() !;
+                try {
+                    let res = cb(nativeCallbackDecoder);
+                    resolver(res);
+                }
+                catch (err) {
+                    rejecter(err);
+                }
+            }
+            while (!nativeCallbackDecoder.isAnyEnd()) nativeCallbackDecoder.next();
+            nativeCallbackDecoder.next();
+            continue;
         }
-        while (!eventDecoder.isAnyEnd()) eventDecoder.next();
-        eventDecoder.next();
+        let name = nativeCallbackDecoder.readAny();
+        let param = nativeCallbackDecoder.readAny();
+        let nodeId = nativeCallbackDecoder.readAny();
+        let time = -1;
+        if (!nativeCallbackDecoder.isAnyEnd()) {
+            time = nativeCallbackDecoder.readAny();
+        }
+        while (!nativeCallbackDecoder.isAnyEnd()) nativeCallbackDecoder.next();
+        nativeCallbackDecoder.next();
         //console.log("Event " + name + " " + JSON.stringify(param) + " node:" + nodeId + " time:" + time);
         let res = eventHandler!(name, param, nodeId, time);
         if (res === true || res === false) {
-            if (id >= 0) writeEventResult(id, <boolean>res);
+            if (id === 0) writeEventResult(id, <boolean>res);
         } else {
             inAsyncEvent = true;
             (<PromiseLike<boolean>>res).then((val) => {
                 inAsyncEvent = false;
-                if (id >= 0) writeEventResult(id, val);
+                if (id === 0) writeEventResult(id, val);
                 __bobrilncb();
             }, (err) => {
                 console.error(err);
                 inAsyncEvent = false;
-                if (id >= 0) writeEventResult(id, false);
+                if (id === 0) writeEventResult(id, false);
                 __bobrilncb();
             });
             return;
@@ -123,27 +131,8 @@ function scheduleNativeCall() {
     nativeCallScheduled = true;
     asap(() => {
         nativeCallScheduled = false;
-        nativeMethodResultDecoder.initFromLatin1String(__bobriln.c(nativeMethodParamEncoder.toLatin1String()));
+        __bobriln.c(nativeMethodParamEncoder.toLatin1String());
         nativeMethodParamEncoder.reset();
-        let cbs = nativeCallResultCallbacks.splice(0);
-        let resolvers = nativeCallResultResolvers.splice(0);
-        let rejecters = nativeCallResultRejecters.splice(0);
-        let resi = 0;
-        for (let i = 0; i < cbs.length; i++) {
-            let cb = cbs[i];
-            if (cb != null) {
-                try {
-                    let res = cb(nativeMethodResultDecoder);
-                    resolvers[resi](res);
-                }
-                catch (err) {
-                    rejecters[resi](err);
-                }
-                resi++;
-            }
-            while (!nativeMethodResultDecoder.isAnyEnd()) nativeMethodResultDecoder.next();
-            nativeMethodResultDecoder.next();
-        }
     });
 }
 

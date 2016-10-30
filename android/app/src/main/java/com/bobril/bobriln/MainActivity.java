@@ -21,8 +21,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 
-public class MainActivity extends Activity implements Gateway.EventResultCallback {
+public class MainActivity extends Activity {
     static GlobalApp globalApp;
+    private boolean syncEv;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,33 +70,6 @@ public class MainActivity extends Activity implements Gateway.EventResultCallbac
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
         updateMediumSize();
-    }
-
-    private MotionEvent curEv;
-    Queue<EventItem> evQueue = new ArrayDeque<>();
-
-    class EventItem {
-        MotionEvent me;
-        String nName;
-        Map<String, Object> nParams;
-        long time;
-    }
-
-    @Override
-    public void EventResult(boolean result) {
-        EventItem ei = evQueue.remove();
-        if (!result) {
-            //Log.d("BobrilN", "dispatching " + ei.nName);
-            if (ei.me == null) {
-                switch (ei.nName) {
-                   case "backPressed":
-                       super.onBackPressed();
-                       break;
-                }
-            } else {
-                super.dispatchTouchEvent(ei.me);
-            }
-        }
     }
 
     class PointerInfo {
@@ -148,16 +122,16 @@ public class MainActivity extends Activity implements Gateway.EventResultCallbac
         return globalApp.vdom.rootVNode.pos2NodeId(x, y);
     }
 
-    void emitPointerMove(int pointerId, float x, float y, long time, boolean nodelay) {
+    boolean emitPointerMove(int pointerId, float x, float y, long time, boolean nodelay) {
         PointerInfo pi = getPointerInfoByPointerId(pointerId);
         if ((pi.state & PointerInfo.STATE_CANCELLED) != 0)
-            return;
+            return false;
         if (!nodelay && x == pi.x && y == pi.y) {
             if (pi.lastTime < time) {
                 pi.lastTime = time;
                 pi.state = pi.state | PointerInfo.STATE_DELAYED_FREEZE;
             }
-            return;
+            return false;
         }
         if ((pi.state & PointerInfo.STATE_DELAYED_FREEZE) != 0) {
             pi.state = pi.state & ~PointerInfo.STATE_DELAYED_FREEZE;
@@ -170,25 +144,19 @@ public class MainActivity extends Activity implements Gateway.EventResultCallbac
         param.put("id", Integer.valueOf(pointerId));
         param.put("x", Float.valueOf(x * invDensity));
         param.put("y", Float.valueOf(y * invDensity));
-
-        emitHelper("pointerMove", param, pi2NodeId(x, y), time);
+        return emitHelper("pointerMove", param, pi2NodeId(x, y), time);
     }
 
-    void emitHelper(String name, Map<String, Object> params, int nodeId, long time) {
-        if (curEv != null) {
-            EventItem ei = new EventItem();
-            ei.me = curEv;
-            ei.nName = name;
-            ei.nParams = params;
-            ei.time = time;
-            evQueue.add(ei);
-            globalApp.emitJSEvent(name, params, nodeId, time, this);
+    boolean emitHelper(String name, Map<String, Object> params, int nodeId, long time) {
+        if (syncEv) {
+            return globalApp.emitJSEventSync(name, params, nodeId, time);
         } else {
             globalApp.emitJSEvent(name, params, nodeId, time);
+            return false;
         }
     }
 
-    void emitPointerDown(int pointerId, float x, float y, long time) {
+    boolean emitPointerDown(int pointerId, float x, float y, long time) {
         PointerInfo pi = getPointerInfoByPointerId(pointerId);
         if ((pi.state & PointerInfo.STATE_DELAYED_FREEZE) != 0) {
             emitPointerMove(pointerId, pi.x, pi.y, pi.lastTime, true);
@@ -205,21 +173,21 @@ public class MainActivity extends Activity implements Gateway.EventResultCallbac
         param.put("id", Integer.valueOf(pointerId));
         param.put("x", Float.valueOf(x * invDensity));
         param.put("y", Float.valueOf(y * invDensity));
-        emitHelper("pointerDown", param, pi2NodeId(x, y), time);
+        return emitHelper("pointerDown", param, pi2NodeId(x, y), time);
     }
 
-    void emitPointerUp(int pointerId, float x, float y, long time) {
+    boolean emitPointerUp(int pointerId, float x, float y, long time) {
         PointerInfo pi = getPointerInfoByPointerId(pointerId);
         if ((pi.state & PointerInfo.STATE_CANCELLED) != 0) {
             pi.state = pi.state & ~PointerInfo.STATE_ACTIVE;
-            return;
+            return false;
         }
         if ((pi.state & PointerInfo.STATE_DELAYED_FREEZE) != 0) {
             emitPointerMove(pointerId, pi.x, pi.y, pi.lastTime, true);
         }
         if ((pi.state & PointerInfo.STATE_DOWN) == 0) {
             emitPointerMove(pointerId, x, y, time, false);
-            return;
+            return false;
         }
         pi.state = pi.state & ~(PointerInfo.STATE_DOWN | PointerInfo.STATE_ACTIVE);
         pi.x = x;
@@ -229,15 +197,16 @@ public class MainActivity extends Activity implements Gateway.EventResultCallbac
         param.put("id", Integer.valueOf(pointerId));
         param.put("x", Float.valueOf(x * invDensity));
         param.put("y", Float.valueOf(y * invDensity));
-        emitHelper("pointerUp", param, pi2NodeId(x, y), time);
+        return emitHelper("pointerUp", param, pi2NodeId(x, y), time);
     }
 
-    void emitPointerCancel(int pointerId) {
+    boolean emitPointerCancel(int pointerId) {
         PointerInfo pi = getPointerInfoByPointerId(pointerId);
         HashMap<String, Object> param = new HashMap<>(1);
         param.put("id", Integer.valueOf(pointerId));
-        emitHelper("pointerCancel", param, pi2NodeId(pi.x, pi.y), -1);
+        boolean res = emitHelper("pointerCancel", param, pi2NodeId(pi.x, pi.y), -1);
         pi.state = pi.state & ~PointerInfo.STATE_ACTIVE;
+        return res;
     }
 
     Rect tempRect = new Rect();
@@ -261,39 +230,38 @@ public class MainActivity extends Activity implements Gateway.EventResultCallbac
             if (mainpi == pi) continue;
             emitPointerMove(ev.getPointerId(pi), ev.getX(pi), ev.getY(pi) - statusBarHeight, time, false);
         }
-        curEv = ev;
+        syncEv = true;
+        boolean res = false;
         switch (ev.getActionMasked()) {
             case MotionEvent.ACTION_MOVE:
-                emitPointerMove(ev.getPointerId(mainpi), ev.getX(mainpi), ev.getY(mainpi) - statusBarHeight, time, false);
+                res = emitPointerMove(ev.getPointerId(mainpi), ev.getX(mainpi), ev.getY(mainpi) - statusBarHeight, time, false);
                 break;
             case MotionEvent.ACTION_DOWN:
             case MotionEvent.ACTION_POINTER_DOWN:
-                emitPointerDown(ev.getPointerId(mainpi), ev.getX(mainpi), ev.getY(mainpi) - statusBarHeight, time);
+                res = emitPointerDown(ev.getPointerId(mainpi), ev.getX(mainpi), ev.getY(mainpi) - statusBarHeight, time);
                 break;
             case MotionEvent.ACTION_UP:
             case MotionEvent.ACTION_POINTER_UP:
-                emitPointerUp(ev.getPointerId(mainpi), ev.getX(mainpi), ev.getY(mainpi) - statusBarHeight, time);
+                res = emitPointerUp(ev.getPointerId(mainpi), ev.getX(mainpi), ev.getY(mainpi) - statusBarHeight, time);
                 break;
             case MotionEvent.ACTION_CANCEL:
-                emitPointerCancel(ev.getPointerId(mainpi));
+                res = emitPointerCancel(ev.getPointerId(mainpi));
                 break;
             default:
                 Log.d("BobrilN", "Ignoring unknown MotionEvent " + MotionEvent.actionToString(ev.getActionMasked()));
                 break;
         }
-        curEv = null;
-        return true;
+        syncEv = false;
+        if (res)
+            return true;
+        return super.dispatchTouchEvent(ev);
     }
 
     @Override
     public void onBackPressed() {
-        EventItem ei = new EventItem();
-        ei.me = null;
-        ei.nName = "backPressed";
-        ei.nParams = new HashMap<>();
-        ei.time = -1;
-        evQueue.add(ei);
-        globalApp.emitJSEvent(ei.nName, ei.nParams, 0, -1, this);
+        if (globalApp.emitJSEventSync("backPressed", new HashMap<String,Object>(), 0, -1))
+            return;
+        super.onBackPressed();
     }
 
     public void dismissKeyboard() {
