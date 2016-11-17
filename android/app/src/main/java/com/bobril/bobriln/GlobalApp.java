@@ -3,6 +3,8 @@ package com.bobril.bobriln;
 import android.content.Context;
 import android.graphics.Color;
 import android.hardware.SensorManager;
+import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.SystemClock;
 import android.util.Log;
 import android.view.Gravity;
@@ -20,6 +22,14 @@ import android.webkit.WebViewClient;
 import android.widget.PopupMenu;
 import android.widget.TextView;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.StringWriter;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -74,12 +84,6 @@ public class GlobalApp implements AccSensorListener.Listener, Gateway {
         webView.getSettings().setJavaScriptEnabled(true);
         webView.addJavascriptInterface(new Jsiface(this), "__bobriln");
         webView.setWebViewClient(new WebViewClient() {
-            @SuppressWarnings("deprecation")
-            @Override
-            public WebResourceResponse shouldInterceptRequest(WebView view, String url) {
-                return super.shouldInterceptRequest(view, url);
-            }
-
             @Override
             public void onPageFinished(WebView view, String url) {
                 Log.d("BobrilN", "PageFinished " + url);
@@ -104,7 +108,7 @@ public class GlobalApp implements AccSensorListener.Listener, Gateway {
             }
         });
         vdom = new VDom(this);
-        imageCache = new ImageCache() {
+        imageCache = new ImageCache(this) {
             @Override
             protected void updated() {
                 rootView.post(new Runnable() {
@@ -162,13 +166,69 @@ public class GlobalApp implements AccSensorListener.Listener, Gateway {
         });
     }
 
-    void reloadJS() {
+    InputStream loadContent(String path) throws IOException {
         if (BobrilnConfig.LoadFromLocalhostUrl) {
-            webView.getSettings().setCacheMode(WebSettings.LOAD_NO_CACHE);
-            webView.loadUrl("http://localhost:8080/index.html");
-        } else {
-            webView.loadUrl("file:///android_asset/index.html");
+            URL url = null;
+            try {
+                url = new URL("http://localhost:8080/" + path);
+            } catch (MalformedURLException e) {
+                this.ShowError(e.toString());
+                return null;
+            }
+            HttpURLConnection connection = null;
+            connection = (HttpURLConnection) url.openConnection();
+            connection.setDoInput(true);
+            connection.connect();
+            return connection.getInputStream();
         }
+        else {
+            return this.mainActivity.getAssets().open(path);
+        }
+    }
+
+    public static String getStringFromInputStream(InputStream stream, String charsetName) throws IOException
+    {
+        int n = 0;
+        char[] buffer = new char[1024];
+        InputStreamReader reader = new InputStreamReader(stream, charsetName);
+        StringWriter writer = new StringWriter();
+        while (-1 != (n = reader.read(buffer))) writer.write(buffer, 0, n);
+        return writer.toString();
+    }
+
+    void reloadJS() {
+        final String url;
+        if (BobrilnConfig.LoadFromLocalhostUrl) {
+            url = "http://localhost:8080/index.html";
+        } else {
+            url = "file:///android_asset/index.html";
+        }
+        new AsyncTask<String,Void,String>() {
+
+            @Override
+            protected String doInBackground(String... params) {
+                try {
+                    InputStream htmlContentStream = loadContent("index.html");
+                    String htmlContent = getStringFromInputStream(htmlContentStream,"UTF-8");
+                    return htmlContent;
+                } catch (IOException e) {
+                    ShowError("Cannot load " + url + "\nMake sure you have started Bobril-build and \nadb reverse tcp:8080 tcp:8080");
+                    e.printStackTrace();
+                }
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(String s) {
+                if (BobrilnConfig.LoadFromLocalhostUrl) {
+                    webView.getSettings().setCacheMode(WebSettings.LOAD_NO_CACHE);
+                    webView.loadDataWithBaseURL("http://localhost:8080/",s,null,"UTF-8",url);
+                } else {
+                    webView.loadDataWithBaseURL("file:///android_asset/",s,null,"UTF-8",url);
+                }
+                super.onPostExecute(s);
+            }
+        }.execute(url);
     }
 
     String c(final String param) {

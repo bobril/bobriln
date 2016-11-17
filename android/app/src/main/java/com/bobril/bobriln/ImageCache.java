@@ -19,8 +19,10 @@ public class ImageCache implements Runnable {
     ArrayBlockingQueue<List<Object>> loadQueue = new ArrayBlockingQueue<List<Object>>(64);
     Bitmap loadingTag = Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888);
     float density;
+    private GlobalApp _app;
 
-    ImageCache() {
+    ImageCache(GlobalApp app) {
+        _app = app;
         cache = new LruCache<List<Object>, Bitmap>(10 * 1024 * 1204) {
             @Override
             protected int sizeOf(List<Object> key, Bitmap value) {
@@ -70,11 +72,7 @@ public class ImageCache implements Runnable {
                     if (den > this.density * 1.3f) break;
                     idx += 2;
                 }
-                URL url = new URL("http://localhost:8080/" + param.get(idx + 1));
-                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-                connection.setDoInput(true);
-                connection.connect();
-                InputStream input = connection.getInputStream();
+                InputStream input = _app.loadContent((String) param.get(idx + 1));
                 Bitmap bitmap = BitmapFactory.decodeStream(input);
                 cache.put(param, bitmap);
                 updated();
