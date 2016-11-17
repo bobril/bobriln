@@ -239,11 +239,14 @@ public class GlobalApp implements AccSensorListener.Listener, Gateway {
         return "";
     }
 
+    boolean showingMenu = false;
     @Override
     public void onShake() {
         rootView.post(new Runnable() {
             @Override
             public void run() {
+                if (showingMenu) return;
+                showingMenu = true;
                 HideErrorCore();
                 final View v = new View(rootView.getContext());
                 v.setLayoutParams(new ViewGroup.LayoutParams(1, 1));
@@ -255,6 +258,7 @@ public class GlobalApp implements AccSensorListener.Listener, Gateway {
                 pm.setOnDismissListener(new PopupMenu.OnDismissListener() {
                     @Override
                     public void onDismiss(PopupMenu menu) {
+                        showingMenu = false;
                         rootView.removeView(v);
                     }
                 });
@@ -262,6 +266,7 @@ public class GlobalApp implements AccSensorListener.Listener, Gateway {
                 pm.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
                     @Override
                     public boolean onMenuItemClick(MenuItem menuItem) {
+                        showingMenu = false;
                         if (menuItem.getItemId() == 1) {
                             reloadJS();
                         }
