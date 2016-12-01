@@ -28,6 +28,7 @@ public class VDom {
     float density;
     CSSLayoutContext cssLayoutContext = new CSSLayoutContext();
     public TextStyleAccumulator textStyleAccu = new TextStyleAccumulator();
+    public Svg2AndroidPath svgHelper = new Svg2AndroidPath();
 
     VDom(GlobalApp globalApp) {
         this.globalApp = globalApp;
@@ -129,6 +130,12 @@ public class VDom {
                 return new VNodeScrollView();
             }
         });
+        globalApp.RegisterTag("Svg", new IVNodeFactory() {
+            @Override
+            public VNode create() {
+                return new VNodeSvg();
+            }
+        });
     }
 
     private void removeNode(int nodeId) {
@@ -178,6 +185,7 @@ public class VDom {
             nodes.add(null);
         }
         nodes.set(nodeId, n);
+        n.init();
         VNode before = null;
         if (createBefore > 0) {
             before = nodes.get(createBefore);
@@ -194,6 +202,7 @@ public class VDom {
         n.lparent = parent;
         nodes.set(n.nodeId, n);
         what.nodeId = -1;
+        n.init();
         parent.replace(what, n);
         return n;
     }

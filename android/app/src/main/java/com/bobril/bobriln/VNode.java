@@ -186,4 +186,7 @@ public abstract class VNode {
             }
         }
     }
+
+    public void init() {
+    }
 }

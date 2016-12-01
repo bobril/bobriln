@@ -9,6 +9,7 @@ public class ColorUtils {
     static Map<String,Integer> namedColors = new HashMap<String,Integer>();
 
     static {
+        namedColors.put("none",0x00000000);
         namedColors.put("transparent",0x00000000);
         namedColors.put("aliceblue",0xfff0f8ff);
         namedColors.put("antiquewhite",0xfffaebd7);

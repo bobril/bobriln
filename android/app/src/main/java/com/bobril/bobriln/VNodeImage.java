@@ -8,8 +8,7 @@ import java.util.List;
 public class VNodeImage extends VNodeViewGroupBased {
     @Override
     View createView(Context ctx) {
-        View view = new NViewImage(ctx, this);
-        return view;
+        return new NViewImage(ctx, this);
     }
 
     @Override
