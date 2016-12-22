@@ -18,13 +18,22 @@ public class NViewSvg extends View {
     protected void dispatchDraw(Canvas canvas) {
         ViewDecoration decoration = owner.getDecoration();
         if (decoration != null) decoration.onBeforeDraw(canvas);
+        SvgStyle svgStyle = owner.svgStyle;
+        svgStyle.AddDefaults();
         canvas.save();
-        canvas.scale(owner.vdom.density, owner.vdom.density);
+        float[] viewBox = owner.viewBox;
+        if (viewBox != null) {
+            canvas.translate(-viewBox[0], -viewBox[1]);
+            canvas.scale(owner.css.getLayoutWidth() / viewBox[2], owner.css.getLayoutHeight() / viewBox[3]);
+        } else {
+            canvas.scale(owner.vdom.density, owner.vdom.density);
+        }
         List<VNode> children = owner.children;
-        for (int i=0;i<children.size();i++) {
+        for (int i = 0; i < children.size(); i++) {
             VNode vNode = children.get(i);
             if (vNode instanceof ISvgDrawable) {
-                ISvgDrawable drawable = (ISvgDrawable)vNode;
+                ISvgDrawable drawable = (ISvgDrawable) vNode;
+                drawable.getSvgStyle().ReadInherited(svgStyle);
                 drawable.draw(canvas);
             }
         }

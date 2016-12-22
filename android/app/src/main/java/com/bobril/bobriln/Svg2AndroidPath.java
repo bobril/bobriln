@@ -560,4 +560,14 @@ public class Svg2AndroidPath {
         }
         return pos;
     }
+
+    public void parseViewBox(String val, float[] result) {
+        input = val;
+        inputLength = input.length();
+        pos[0] = 0;
+        result[0] = nextFloat();
+        result[1] = checkedNextFloat(result[0]);
+        result[2] = checkedNextFloat(result[1]);
+        result[3] = checkedNextFloat(result[2]);
+    }
 }

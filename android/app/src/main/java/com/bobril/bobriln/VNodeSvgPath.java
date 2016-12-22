@@ -1,25 +1,13 @@
 package com.bobril.bobriln;
 
 import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Paint;
 import android.graphics.Path;
 
 import java.security.InvalidParameterException;
 
 public class VNodeSvgPath extends VNode implements ISvgDrawable {
     Path path = new Path();
-    Paint strokePaint = new Paint();
-    Paint fillPaint = new Paint();
-
-    public VNodeSvgPath() {
-        super();
-        strokePaint.setStyle(Paint.Style.STROKE);
-        fillPaint.setStyle(Paint.Style.FILL);
-        strokePaint.setStrokeWidth(1);
-        strokePaint.setAntiAlias(true);
-        fillPaint.setAntiAlias(true);
-    }
+    SvgStyle svgStyle = new SvgStyle();
 
     @Override
     VNode createByTag(String tag) {
@@ -40,21 +28,20 @@ public class VNodeSvgPath extends VNode implements ISvgDrawable {
 
     @Override
     public void setStyle(String styleName, Object styleValue) {
-        if (styleName.equals("stroke")) {
-            int color = ColorUtils.toColor(styleValue);
-            strokePaint.setColor(color);
-        } else if (styleName.equals("strokeWidth")) {
-            strokePaint.setStrokeWidth(FloatUtils.parseFloat(styleValue));
-        } else if (styleName.equals("fill")) {
-            int color = ColorUtils.toColor(styleValue);
-            fillPaint.setColor(color);
-        }
+        if (svgStyle.setStyle(styleName, styleValue))
+            return;
         super.setStyle(styleName, styleValue);
     }
 
     @Override
+    public SvgStyle getSvgStyle() {
+        return svgStyle;
+    }
+
+    @Override
     public void draw(Canvas canvas) {
-        if (fillPaint.getColor() != Color.TRANSPARENT) canvas.drawPath(path, fillPaint);
-        if (strokePaint.getColor() != Color.TRANSPARENT) canvas.drawPath(path, strokePaint);
+        svgStyle.update();
+        if (svgStyle.fillPaint != null) canvas.drawPath(path, svgStyle.fillPaint);
+        if (svgStyle.strokePaint != null) canvas.drawPath(path, svgStyle.strokePaint);
     }
 }
