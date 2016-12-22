@@ -7,10 +7,14 @@ public class SvgStyle {
     static final int F_STROKE_COLOR = 1;
     static final int F_FILL_COLOR = 2;
     static final int F_STROKE_WIDTH = 4;
+    static final int F_STROKE_OPACITY = 8;
+    static final int F_FILL_OPACITY = 16;
 
     int flags;
     int strokeColor;
     int fillColor;
+    float fillOpacity;
+    float strokeOpacity;
     float opacity;
     float finalOpacity;
     float strokeWidth;
@@ -23,6 +27,8 @@ public class SvgStyle {
         strokeColor = 0;
         fillColor = 0;
         opacity = 1;
+        fillOpacity = 1;
+        strokeOpacity = 1;
     }
 
     public boolean setStyle(String styleName, Object styleValue) {
@@ -47,6 +53,24 @@ public class SvgStyle {
                 fillColor = ColorUtils.toColor(styleValue);
                 flags |= F_FILL_COLOR;
             }
+        } else if (styleName.equals("strokeOpacity")) {
+            if (styleValue == null) {
+                flags &= ~F_STROKE_OPACITY;
+            } else {
+                strokeOpacity = FloatUtils.parseFloat(styleValue);
+                if (strokeOpacity < 0) strokeOpacity = 0;
+                else if (strokeOpacity > 1) strokeOpacity = 1;
+                flags |= F_STROKE_OPACITY;
+            }
+        } else if (styleName.equals("fillOpacity")) {
+            if (styleValue == null) {
+                flags &= ~F_FILL_OPACITY;
+            } else {
+                fillOpacity = FloatUtils.parseFloat(styleValue);
+                if (fillOpacity < 0) fillOpacity = 0;
+                else if (fillOpacity > 1) fillOpacity = 1;
+                flags |= F_FILL_OPACITY;
+            }
         } else if (styleName.equals("opacity")) {
             if (styleValue == null) {
                 opacity = 1;
@@ -69,6 +93,12 @@ public class SvgStyle {
         if ((newFlags & F_STROKE_COLOR) != 0) {
             this.strokeColor = merge.strokeColor;
         }
+        if ((newFlags & F_FILL_OPACITY) != 0) {
+            this.fillOpacity = merge.fillOpacity;
+        }
+        if ((newFlags & F_STROKE_OPACITY) != 0) {
+            this.strokeOpacity = merge.strokeOpacity;
+        }
         if ((newFlags & F_STROKE_WIDTH) != 0) {
             this.strokeWidth = merge.strokeWidth;
         }
@@ -83,6 +113,12 @@ public class SvgStyle {
         if ((newFlags & F_STROKE_COLOR) != 0) {
             this.strokeColor = Color.TRANSPARENT;
         }
+        if ((newFlags & F_FILL_OPACITY) != 0) {
+            this.fillOpacity = 1;
+        }
+        if ((newFlags & F_STROKE_OPACITY) != 0) {
+            this.strokeOpacity = 1;
+        }
         if ((newFlags & F_STROKE_WIDTH) != 0) {
             this.strokeWidth = 1;
         }
@@ -90,7 +126,8 @@ public class SvgStyle {
     }
 
     public void update() {
-        if (fillColor == Color.TRANSPARENT || finalOpacity == 0) {
+        float fillO = finalOpacity * fillOpacity;
+        if (fillColor == Color.TRANSPARENT || fillO == 0) {
             fillPaint = null;
         } else {
             if (fillPaint == null) {
@@ -99,11 +136,12 @@ public class SvgStyle {
                 fillPaint.setStyle(Paint.Style.FILL);
             }
             fillPaint.setColor(fillColor);
-            if (finalOpacity < 1) {
-                fillPaint.setAlpha((int) (fillPaint.getAlpha() * finalOpacity + 0.5));
+            if (fillO < 1) {
+                fillPaint.setAlpha((int) (fillPaint.getAlpha() * fillO + 0.5));
             }
         }
-        if (strokeColor == Color.TRANSPARENT || strokeWidth == 0 || finalOpacity == 0) {
+        float strokeO = finalOpacity * strokeOpacity;
+        if (strokeColor == Color.TRANSPARENT || strokeWidth == 0 || strokeO == 0) {
             strokePaint = null;
         } else {
             if (strokePaint == null) {
@@ -113,8 +151,8 @@ public class SvgStyle {
             }
             strokePaint.setColor(strokeColor);
             strokePaint.setStrokeWidth(strokeWidth);
-            if (finalOpacity < 1) {
-                strokePaint.setAlpha((int) (strokePaint.getAlpha() * finalOpacity + 0.5));
+            if (strokeO < 1) {
+                strokePaint.setAlpha((int) (strokePaint.getAlpha() * strokeO + 0.5));
             }
         }
     }
