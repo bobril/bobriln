@@ -46,7 +46,7 @@ public class StringUtils {
         }
         if (pos < strlen) {
             char ch = str.charAt(pos);
-            if (ch < '0' || ch > '9') return Double.NaN;
+            if ((ch < '0' || ch > '9') && ch!='.') return Double.NaN;
         } else return Double.NaN;
         while (pos < strlen) {
             char ch = str.charAt(pos);

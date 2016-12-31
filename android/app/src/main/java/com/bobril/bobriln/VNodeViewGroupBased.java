@@ -2,7 +2,9 @@ package com.bobril.bobriln;
 
 import android.view.ViewGroup;
 
+import com.facebook.csslayout.CSSLayout;
 import com.facebook.csslayout.CSSLayoutContext;
+import com.facebook.csslayout.CSSNode;
 
 public abstract class VNodeViewGroupBased extends VNodeViewBased {
 
@@ -45,4 +47,5 @@ public abstract class VNodeViewGroupBased extends VNodeViewBased {
     public ViewGroup getViewForChildren() {
         return (ViewGroup)view;
     }
+    public CSSNode getCssForChildren() { return css; }
 }

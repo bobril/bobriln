@@ -1072,6 +1072,7 @@ var ctxInvalidated = "$invalidated";
 var ctxDeepness = "$deepness";
 var fullRecreateRequested = true;
 var scheduled = false;
+let initializing = true;
 var uptimeMs = 0;
 var frameCounter = 0;
 var lastFrameDurationMs = 0;
@@ -1244,16 +1245,10 @@ export var invalidate = (ctx?: Object, deepness?: number) => {
     } else {
         fullRecreateRequested = true;
     }
-    if (scheduled)
+    if (scheduled || initializing)
         return;
     scheduled = true;
     requestAnimationFrame(update);
-}
-
-function forceInvalidate() {
-    if (!scheduled)
-        fullRecreateRequested = false;
-    invalidate();
 }
 
 var lastRootId = 0;
@@ -1262,7 +1257,7 @@ export function addRoot(factory: () => IBobrilChildren, parent?: IBobrilCacheNod
     lastRootId++;
     var rootId = "" + lastRootId;
     roots[rootId] = { f: factory, c: [], p: parent };
-    forceInvalidate();
+    invalidate();
     return rootId;
 }
 
@@ -1279,14 +1274,19 @@ export function getRoots(): IBobrilRoots {
     return roots;
 }
 
-var beforeInit: () => void = forceInvalidate;
+function finishInitialize() {
+    initializing = false;
+    invalidate();
+}
+
+var beforeInit: () => void = finishInitialize;
 
 export function init(factory: () => any) {
     removeRoot("0");
     roots["0"] = { f: factory, c: [], p: undefined };
     gw.readyPromise.then(() => {
         beforeInit();
-        beforeInit = forceInvalidate;
+        beforeInit = finishInitialize;
     });
 }
 

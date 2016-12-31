@@ -9,7 +9,7 @@ import java.util.List;
 
 public class NViewImage extends NViewView {
     public NViewImage(Context ctx, VNodeImage imageVNode) {
-        super(ctx, imageVNode);
+        super(ctx, imageVNode, false);
     }
 
     @Override

@@ -6,7 +6,7 @@ import android.view.View;
 public class VNodeView extends VNodeViewGroupBased {
     @Override
     View createView(Context ctx) {
-        View view = new NViewView(ctx, this);
+        View view = new NViewView(ctx, this, false);
         return view;
     }
 

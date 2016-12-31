@@ -42,7 +42,7 @@ public abstract class VNodeViewBased extends VNode implements IHasTextStyle {
         if (x < lx || y < ly || x > lx + w || y > ly + h) return 0;
         if (children != null) {
             int c = children.size();
-            for (int i = 0; i < c; i++) {
+            for (int i = c - 1; i >= 0; i--) {
                 VNode ch = children.get(i);
                 int id = ch.pos2NodeId(x - lx, y - ly);
                 if (id > 0) return id;
@@ -54,13 +54,14 @@ public abstract class VNodeViewBased extends VNode implements IHasTextStyle {
     @Override
     public void remove(VNode child) {
         if (child instanceof VNodeViewBased) {
-            VNodeViewBased ch = (VNodeViewBased)child;
+            VNodeViewBased ch = (VNodeViewBased) child;
             VNode trueParent = ch.getParent();
             if (trueParent instanceof VNodeViewGroupBased) {
                 VNodeViewGroupBased parent = (VNodeViewGroupBased) trueParent;
                 if (parent != null) {
-                    if (ch.css.getParent() != null) {
-                        parent.css.removeChildAt(parent.css.indexOf(ch.css));
+                    CSSNode cssP = ch.css.getParent();
+                    if (cssP != null) {
+                        cssP.removeChildAt(cssP.indexOf(ch.css));
                     }
                 }
             }
@@ -85,13 +86,14 @@ public abstract class VNodeViewBased extends VNode implements IHasTextStyle {
             VNodeViewGroupBased parent = (VNodeViewGroupBased) trueParent;
             if (parent != null) {
                 ViewGroup g = parent.getViewForChildren();
+                CSSNode pcss = parent.getCssForChildren();
                 if (css.getParent() == null)
-                    parent.css.addChildAt(css, indexInParent);
+                    pcss.addChildAt(css, indexInParent);
                 else {
-                    int ci = parent.css.indexOf(css);
+                    int ci = pcss.indexOf(css);
                     if (ci != indexInParent) {
-                        parent.css.removeChildAt(ci);
-                        parent.css.addChildAt(css, indexInParent);
+                        pcss.removeChildAt(ci);
+                        pcss.addChildAt(css, indexInParent);
                     }
                 }
                 if (view.getParent() == null) {

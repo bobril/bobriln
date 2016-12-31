@@ -22,6 +22,9 @@ public class VNodeSvgPath extends VNode implements ISvgDrawable {
             }
             invalidate();
             return;
+        } else if (attrName.equals("opacity")) {
+            svgStyle.setStyle(attrName, attrValue);
+            return;
         }
         super.setAttr(attrName, attrValue);
     }
